@@ -208,6 +208,11 @@ public class TeleopV1 extends LinearOpMode {
                 wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wobbleArmMotor.setPower(.5);
             }
+            if(RBumper1) {
+                loaderTrack.setPower(0.1);
+            } else {
+                loaderTrack.setPower(0);
+            }
 
 
             //telementry////////////////////////////////////////////////////////////////////////////////////////////

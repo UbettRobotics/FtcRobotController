@@ -35,10 +35,11 @@ public class Robot {
     static DcMotor leftfront;
     static DcMotor leftback;
     static DcMotor rightback;
-    static DcMotor launcher1;
+    static DcMotor launcher1; //Now Unused, loaderTrack replaced
     static DcMotor launcher2;
     static DcMotor launcherbelt;
     static DcMotor wobbleArmMotor;
+    static DcMotor loaderTrack;
 
     static CRServo feeder;
     static Servo wobbleClaw;
@@ -57,7 +58,7 @@ public class Robot {
         leftback = opMode.hardwareMap.get(DcMotor.class, "leftback");
         rightback = opMode.hardwareMap.get(DcMotor.class, "rightback");
 
-        launcher1 = opMode.hardwareMap.get(DcMotor.class, "launcher1");
+        loaderTrack = opMode.hardwareMap.get(DcMotor.class, "loaderTrack");
         launcher2 = opMode.hardwareMap.get(DcMotor.class, "launcher2");
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
 
@@ -80,7 +81,7 @@ public class Robot {
     }
 
     public static void initAccessories(OpMode opMode){
-        launcher1 = opMode.hardwareMap.get(DcMotor.class, "launcher1");
+        loaderTrack = opMode.hardwareMap.get(DcMotor.class, "loaderTrack");
         launcher2 = opMode.hardwareMap.get(DcMotor.class, "launcher2");
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
 
@@ -101,7 +102,7 @@ public class Robot {
         rightfront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftback.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightback.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        launcher1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        loaderTrack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherbelt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wobbleArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -110,7 +111,7 @@ public class Robot {
         rightfront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftback.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightback.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launcher1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        loaderTrack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcherbelt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wobbleArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -273,11 +274,9 @@ public class Robot {
         globalAngle = 0;
     }
     public static void launchRingPub(double speed) {
-        launcher1.setPower(speed);
         launcher2.setPower(-speed);
         launcherbelt.setPower(0.5);
         sleep(2000);
-        launcher1.setPower(0);
         launcher2.setPower(0);
         launcherbelt.setPower(0);
 

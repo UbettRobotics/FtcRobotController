@@ -152,17 +152,17 @@ public class TeleopV1 extends LinearOpMode {
             //launcher motors
             if(a2){
                 //launcher1.setPower(0.80);
-                launchPower = 0.75; //0.75
-                blocker.setPosition(0.2); //open
+                launchPower = 0.75;
+                //blocker.setPosition(0.2); //open
             } else if (LTrigger2 > 0 && LBumper1) { //both controller 1 and controller 2 are needed to initiate shooting to force teamwork
-                launchPower = 0.81; //0.8
-                blocker.setPosition(0.2); //open
+                launchPower = 0.81;
+                //blocker.setPosition(0.2); //open
             } else if (LBumper2 && LBumper1) {
                 launchPower = 1; //full
-                blocker.setPosition(0.2); //open
+                //blocker.setPosition(0.2); //open
             } else {
                 launchPower = 0;
-                blocker.setPosition(0.50); //closed
+                //blocker.setPosition(0.50); //closed
             }
 
             //feeder servo
@@ -170,23 +170,24 @@ public class TeleopV1 extends LinearOpMode {
                 feeder.setPower(1);
             } else if(dpadDOWN2){
                 feeder.setPower(-1);
+                launchPower =-0.05;
             } else {
                 feeder.setPower(0);
             }
 
             //Launcher conveyor belt
             if(RTrigger2 > 0) {
-                launcherbelt.setPower(RTrigger2);
                 feeder.setPower(1);
-            } else if (RBumper2) {
-                launcherbelt.setPower(-0.25);
-                launchPower = -.05;
+            } //No else statement because of 0 power in dpad2 above
+
+            if(RBumper2) {
+                loaderTrack.setPower(-1);
             } else {
-                launcherbelt.setPower(0);
+                loaderTrack.setPower(0);
             }
             launcher2.setPower(launchPower);
-            //open wobble claw
 
+            //open wobble claw
             if(x2){
                 //open
                 wobbleClaw.setPosition(1);
@@ -208,12 +209,11 @@ public class TeleopV1 extends LinearOpMode {
                 wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wobbleArmMotor.setPower(.5);
             }
-            if(RBumper1) {
-                loaderTrack.setPower(0.1);
+            if(dpadLeft2) {
+                blocker.setPosition(0.6);
             } else {
-                loaderTrack.setPower(0);
+                blocker.setPosition(0.4);
             }
-
 
             //telementry////////////////////////////////////////////////////////////////////////////////////////////
             telemetry.addData("angle: ", getAngle());

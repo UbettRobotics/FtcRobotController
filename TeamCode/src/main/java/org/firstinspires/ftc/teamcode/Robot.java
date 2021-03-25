@@ -40,6 +40,7 @@ public class Robot {
     static DcMotor loaderTrack;
 
     static CRServo feeder;
+    static CRServo loaderWheel;
     static Servo wobbleClaw;
     static Servo wobbleArm;
     static Servo loader;
@@ -61,6 +62,7 @@ public class Robot {
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
 
         feeder = opMode.hardwareMap.get(CRServo.class, "feeder");
+        loaderWheel = opMode.hardwareMap.get(CRServo.class, "loaderWheel");
         wobbleClaw = opMode.hardwareMap.servo.get("wobbleClaw");
         wobbleArm = opMode.hardwareMap.servo.get("wobbleArm");
         wobbleArmMotor = opMode.hardwareMap.get(DcMotor.class, "wobbleArmMotor");
@@ -83,6 +85,7 @@ public class Robot {
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
 
         feeder = opMode.hardwareMap.get(CRServo.class, "feeder");
+        loaderWheel = opMode.hardwareMap.get(CRServo.class, "loaderWheel");
         wobbleClaw = opMode.hardwareMap.servo.get("wobbleClaw");
         wobbleArm = opMode.hardwareMap.servo.get("wobbleArm");
         wobbleArmMotor = opMode.hardwareMap.get(DcMotor.class, "wobbleArmMotor");

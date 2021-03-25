@@ -15,6 +15,8 @@ import static org.firstinspires.ftc.teamcode.Robot.*;
 
 @TeleOp(name = "teleop")
 public class TeleopV1 extends LinearOpMode {
+    boolean isPushed = false;
+
     @Override
     public void runOpMode() throws InterruptedException {
         initMotors(this);
@@ -26,7 +28,7 @@ public class TeleopV1 extends LinearOpMode {
         waitForStart();
 
 
-        while(opModeIsActive()) {
+        while(opModeIsActive() && !isStopRequested()) {
 
             //update localization position
             //localizer.update();
@@ -168,23 +170,31 @@ public class TeleopV1 extends LinearOpMode {
             //feeder servo
             if(dpadUP2){
                 feeder.setPower(1);
+                loaderWheel.setPower(-1);
             } else if(dpadDOWN2){
                 feeder.setPower(-1);
+                loaderWheel.setPower(1);
                 launchPower =-0.05;
             } else {
                 feeder.setPower(0);
+                loaderWheel.setPower(0);
             }
 
             //Launcher conveyor belt
             if(RTrigger2 > 0) {
-                feeder.setPower(1);
-            } //No else statement because of 0 power in dpad2 above
-
-            if(RBumper2) {
-                loaderTrack.setPower(-1);
-            } else {
-                loaderTrack.setPower(0);
+                blocker.setPosition(0.75);//down
+                loaderTrack.setTargetPosition(365);
+                loaderTrack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                loaderTrack.setPower(0.4);
             }
+            if (RBumper2){
+                blocker.setPosition(0.1); //up
+                loaderTrack.setTargetPosition(-1);
+                loaderTrack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                loaderTrack.setPower(0.4);
+            }
+
+
             launcher2.setPower(launchPower);
 
             //open wobble claw
@@ -210,9 +220,11 @@ public class TeleopV1 extends LinearOpMode {
                 wobbleArmMotor.setPower(.5);
             }
             if(dpadLeft2) {
-                blocker.setPosition(0.6);
-            } else {
-                blocker.setPosition(0.4);
+                blocker.setPosition(0.75);
+                //down
+            } if(dpadRight2) {
+                blocker.setPosition(0.3);
+                //up
             }
 
             //telementry////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,6 +233,8 @@ public class TeleopV1 extends LinearOpMode {
             telemetry.addData("arm encoder: ", wobbleArmMotor.getCurrentPosition());
             telemetry.addData("wheel encoder: ", leftfront.getCurrentPosition());
             telemetry.addData("launcher Power: ", launcher2.getPower());
+            telemetry.addData("trackMotor Pos: ", loaderTrack.getCurrentPosition());
+            telemetry.addData("please no: ", launcherbelt.getCurrentPosition());
             //Pose2d myPose = localizer.getPoseEstimate();
             //telemetry.addData("x: ", myPose.getX());
             //telemetry.addData("y: ", myPose.getY());

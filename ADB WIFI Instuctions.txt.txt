@@ -1,0 +1,33 @@
+NOTE: If wireless doesn't work, just use a USB Cord!
+
+Instructions:
+Open Terminal @ bottom of screen in Android Studio
+-Beginning of Practice: 
+ Type "connect.bat" - if it mentions redirecting to ADB platform-tools, run connect.bat again
+ Then, follow instructions: plug in robot, move on; unplug robot, connect to its Wifi, move on; Done!
+
+-If Android Studio disconnects or laptop disconnects from wifi (During practice):
+ Type 'cn.bat' to reconnect (make sure text has 'platform-tools' in it)
+ If you use something other than Rev Control hub, you may have to change IP Address in cn.bat and connect.bat
+ If you do use something that isn't Rev Control Hub, the wireless connection might not be supported
+ 
+ 
+
+
+
+Explain stuff: 
+-It's all Windows cmd stuff, even though you're in Android Studio
+-Right click .bat files, click Edit
+2020-2021 UBett\connect.bat -->
+"echo" just puts text into terminal
+"cd" is change directory (folder): move the command line to where the actual ADB is
+
+AppData\Local\Android\Sdk\platform-tools\connect.bat -->
+"pause" just pauses program to do stuff (Like plug in robot).
+"adb tcpip 5555" Tells the robot to 'listen' for downloads over wireless (tcpip) on port 5555
+"adb connect 192.168.43.1" Tells Android Studio to connect to the robot's IP address 
+     (Rev Hub is 192.168.43.1 when connected to its WiFi) to download programs
+
+AppData\Local\Android\Sdk\platform-tools\cn.bat -->
+Just uses same 'adb connect' command. Shorthand for if Android Studio/laptop disconnects from robot,
+and immediately reconnects to robot

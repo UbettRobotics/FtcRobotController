@@ -27,7 +27,7 @@ public class Robot {
 
     final static int TICKS_PER_INCH = 33;
     public final static double BLOCKER_OPEN = 0.25;
-    public final static double BLOCKER_CLOSED = 0.7;
+    public final static double BLOCKER_CLOSED = 0.72;
 
     final static double DEG90 = 22;//90 degree turn distance ()
 
@@ -39,7 +39,8 @@ public class Robot {
     static DcMotor launcher2;
     static DcMotor launcherbelt;
     static DcMotor wobbleArmMotor;
-    static DcMotor loaderTrack;
+    static DcMotor feederMotor;
+
 
     static CRServo feeder;
     static Servo wobbleClaw;
@@ -58,9 +59,10 @@ public class Robot {
         leftback = opMode.hardwareMap.get(DcMotor.class, "leftback");
         rightback = opMode.hardwareMap.get(DcMotor.class, "rightback");
 
-        loaderTrack = opMode.hardwareMap.get(DcMotor.class, "loaderTrack");
+
         launcher2 = opMode.hardwareMap.get(DcMotor.class, "launcher2");
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
+        feederMotor = opMode.hardwareMap.get(DcMotor.class, "feederMotor");
 
         feeder = opMode.hardwareMap.get(CRServo.class, "feeder");
         wobbleClaw = opMode.hardwareMap.servo.get("wobbleClaw");
@@ -76,14 +78,14 @@ public class Robot {
         leftfront.setDirection(DcMotor.Direction.FORWARD);
         launcherbelt.setDirection(DcMotor.Direction.REVERSE);
         wobbleArmMotor.setDirection((DcMotor.Direction.REVERSE));
-        launcher2.setDirection((DcMotor.Direction.REVERSE));
+        launcher2.setDirection((DcMotor.Direction.FORWARD));
         resetMotors();
     }
 
     public static void initAccessories(OpMode opMode){
-        loaderTrack = opMode.hardwareMap.get(DcMotor.class, "loaderTrack");
         launcher2 = opMode.hardwareMap.get(DcMotor.class, "launcher2");
         launcherbelt = opMode.hardwareMap.get(DcMotor.class, "launcher_belt");
+        feederMotor = opMode.hardwareMap.get(DcMotor.class, "feederMotor");
 
         feeder = opMode.hardwareMap.get(CRServo.class, "feeder");
         wobbleClaw = opMode.hardwareMap.servo.get("wobbleClaw");
@@ -94,7 +96,7 @@ public class Robot {
         launcherbelt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherbelt.setDirection(DcMotor.Direction.REVERSE);
         wobbleArmMotor.setDirection((DcMotor.Direction.REVERSE));
-        launcher2.setDirection((DcMotor.Direction.REVERSE));
+        launcher2.setDirection((DcMotor.Direction.FORWARD));
     }
 
     public static void resetMotors() {
@@ -102,19 +104,21 @@ public class Robot {
         rightfront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftback.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightback.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        loaderTrack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         launcher2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherbelt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wobbleArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        feederMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftfront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightfront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftback.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightback.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        loaderTrack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         launcher2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcherbelt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wobbleArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        feederMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public static void forward(double dist, double speed) {

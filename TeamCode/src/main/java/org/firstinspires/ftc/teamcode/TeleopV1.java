@@ -1,14 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.CRServo;
-
-
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
@@ -20,18 +14,10 @@ public class TeleopV1 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         initMotors(this);
         initIMU(this);
-        //inits roadrunner localizer
-        //MainMecanumDrive localizer = new MainMecanumDrive(hardwareMap);
-        //localizer.setPoseEstimate(new Pose2d(-10, 2, Math.toRadians(0)));
 
         waitForStart();
 
-
         while(opModeIsActive()) {
-
-            //update localization position
-            //localizer.update();
-
             boolean LBumper1 = gamepad1.left_bumper;
             boolean RBumper1 = gamepad1.right_bumper;
 
@@ -155,10 +141,10 @@ public class TeleopV1 extends LinearOpMode {
                 //launcher1.setPower(0.80);
                 launchPower = 0.75; //0.75
                 blocker.setPosition(BLOCKER_OPEN); //open
-            } else if (LTrigger2 > 0 && LBumper1) { //both controller 1 and controller 2 are needed to initiate shooting to force teamwork
+            } else if (LTrigger2 > 0) {
                 launchPower = 0.85; //0.8
                 blocker.setPosition(BLOCKER_OPEN); //open
-            } else if (LBumper2 && LBumper1) {
+            } else if (LBumper2) {
                 launchPower = 1; //full
                 blocker.setPosition(BLOCKER_OPEN); //open
             } else if (dpadRight2) {
@@ -171,29 +157,33 @@ public class TeleopV1 extends LinearOpMode {
                 launchPower = 0;
                 blocker.setPosition(BLOCKER_CLOSED); //closed
             }
+            launcher2.setPower(launchPower);
 
             //feeder servo
             if(dpadUP2){
                 feeder.setPower(1);
+                feederMotor.setPower(.5);
             } else if(dpadDOWN2){
                 feeder.setPower(-1);
+                feederMotor.setPower(-.5);
             } else {
                 feeder.setPower(0);
+                feederMotor.setPower(0);
             }
 
             //Launcher conveyor belt
             if(RTrigger2 > 0) {
-                launcherbelt.setPower(RTrigger2);
+                launcherbelt.setPower(RTrigger2 * 0.85);
                 feeder.setPower(1);
             } else if (RBumper2) {
-                launcherbelt.setPower(-0.25);
+                launcherbelt.setPower(-0.20);
                 blocker.setPosition(0.65);
             } else {
                 launcherbelt.setPower(0);
             }
-            launcher2.setPower(launchPower);
-            //open wobble claw
 
+
+            //open wobble claw
             if(x2){
                 //open
                 wobbleClaw.setPosition(0.7);
@@ -215,13 +205,6 @@ public class TeleopV1 extends LinearOpMode {
                 wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wobbleArmMotor.setPower(.5);
             }
-            if(RBumper1) {
-                loaderTrack.setPower(0.1);
-            } else {
-                loaderTrack.setPower(0);
-            }
-
-
 
 
             //telementry////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,10 +213,6 @@ public class TeleopV1 extends LinearOpMode {
             telemetry.addData("arm encoder: ", wobbleArmMotor.getCurrentPosition());
             telemetry.addData("wheel encoder: ", leftfront.getCurrentPosition());
             telemetry.addData("launcher Power: ", launcher2.getPower());
-            //Pose2d myPose = localizer.getPoseEstimate();
-            //telemetry.addData("x: ", myPose.getX());
-            //telemetry.addData("y: ", myPose.getY());
-            //telemetry.addData("heading: ", myPose.getHeading());
             telemetry.update();
         }
     }

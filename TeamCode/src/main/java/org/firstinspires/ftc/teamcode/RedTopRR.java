@@ -31,17 +31,19 @@ public class RedTopRR extends LinearOpMode {
         telemetry.addLine("Not initialized");
         telemetry.update();
 
+        //init drive train
         MainMecanumDrive drive = new MainMecanumDrive(hardwareMap);
         Robot.initAccessories(this);
         Pose2d startPose = new Pose2d(57, 20, Math.toRadians(0)); //init starting position
-        drive.setPoseEstimate(startPose);
+        //init servos
+        blocker.setPosition(BLOCKER_OPEN);
+        wobbleClaw.setPosition(0);
+
         //////Start Camera Streaming//////
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
-
         RingVisionPipeline pipeline = new RingVisionPipeline(telemetry);
         webcam.setPipeline(pipeline);
-
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
@@ -50,13 +52,6 @@ public class RedTopRR extends LinearOpMode {
         });
 
 ////////Program start////////////////////////////////////////////////////////////////////////
-        //init servos
-        blocker.setPosition(BLOCKER_OPEN);
-        //wobbleArmMotor.setTargetPosition(ARM_UP);
-        //wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        //wobbleArmMotor.setPower(.5);
-        wobbleClaw.setPosition(0);
-
         waitForStart();
 
         telemetry.addData("location: ", pipeline.getLocation());
@@ -114,7 +109,6 @@ public class RedTopRR extends LinearOpMode {
 
         ///////////three different paths depending on drop zone of wobble goal////////////
 
-
         switch (stackPos) {
             case 3:
                 //FULL Stack rings
@@ -135,7 +129,6 @@ public class RedTopRR extends LinearOpMode {
                 drive.followTrajectory(moveToZoneAgain);
         }
 
-
         ejectWobbleGoal();
 
         Trajectory moveToLine = drive.trajectoryBuilder(moveToZoneAgain.end(),true)
@@ -149,7 +142,6 @@ public class RedTopRR extends LinearOpMode {
 
 
         if (isStopRequested()) return;
-        sleep(2000);
     }
 
 

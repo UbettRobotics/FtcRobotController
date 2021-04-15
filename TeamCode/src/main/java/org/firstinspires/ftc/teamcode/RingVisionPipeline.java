@@ -49,19 +49,11 @@ public class RingVisionPipeline extends OpenCvPipeline {
         Scalar highHSV = new Scalar(hueMax, satMax, valMax);
 
         Core.inRange(mat, lowHSV, highHSV, mat);
-        telemetry.addData("HueMin: ", hueMin);
-        telemetry.addData("HueMax: ", hueMin);
-        telemetry.addData("ValMin: ", valMin);
-        telemetry.addData("ValMax: ", valMax);
-        telemetry.addData("SatMin: ", satMin);
-        telemetry.addData("SatMax: ", satMax);
-
-
 
         Imgproc.findContours(mat, contours, mat2, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
         ringAreaArray = getContourArea(mat);
-        telemetry.addData("timer", date.getTime());
         telemetry.addData("Contour area: ", getContourArea(mat));
+        telemetry.addData("stack size: ", getRingArea());
         telemetry.update();
 
         return mat;
@@ -70,7 +62,6 @@ public class RingVisionPipeline extends OpenCvPipeline {
     public Location getLocation() {
         return location;
     }
-
 
 
     private ArrayList<Double> getContourArea(Mat mat) {

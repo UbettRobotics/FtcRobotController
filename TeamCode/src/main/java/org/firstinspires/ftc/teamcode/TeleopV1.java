@@ -81,11 +81,20 @@ public class TeleopV1 extends LinearOpMode {
                     SetPower(v1, v2, v3, v4);
                 }
             }
+            /*
+            Trigger Turning
             else if (Math.abs(LTrigger1) > 0) {
                 SetPower(-.5 * LTrigger1, .5 * LTrigger1, -.5 * LTrigger1, .5 * LTrigger1);
             }
             else if (Math.abs(RTrigger1) > 0) {
                 SetPower(.5 * RTrigger1, -.5 * RTrigger1, .5 * RTrigger1, -.5 * RTrigger1);
+            }
+            */
+            else if (LBumper1) {
+                SetPower(-.5 * 1, .5 * 1, -.5 * 1, .5 * 1);
+            }
+            else if (RBumper1) {
+                SetPower(.5 * 1, -.5 * 1, .5 * 1, -.5 * 1);
             }
             else {
                 SetPower(0,0,0,0);
@@ -142,7 +151,7 @@ public class TeleopV1 extends LinearOpMode {
                 launchPower = 0.75; //0.75
                 blocker.setPosition(BLOCKER_OPEN); //open
             } else if (LTrigger2 > 0) {
-                launchPower = 0.85; //0.8
+                launchPower = 0.9; //0.8
                 blocker.setPosition(BLOCKER_OPEN); //open
             } else if (LBumper2) {
                 launchPower = 1; //full

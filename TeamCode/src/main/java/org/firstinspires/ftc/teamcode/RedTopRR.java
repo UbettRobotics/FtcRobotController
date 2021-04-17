@@ -35,6 +35,7 @@ public class RedTopRR extends LinearOpMode {
         MainMecanumDrive drive = new MainMecanumDrive(hardwareMap);
         Robot.initAccessories(this);
         Pose2d startPose = new Pose2d(57, 20, Math.toRadians(0)); //init starting position
+        drive.setPoseEstimate(startPose);
         //init servos
         blocker.setPosition(BLOCKER_OPEN);
         wobbleClaw.setPosition(0);
@@ -79,7 +80,7 @@ public class RedTopRR extends LinearOpMode {
         drive.followTrajectory(initForward);
 
         //Ramp up launcher
-        launcher2.setPower(0.87);
+        launcher2.setPower(0.95);
         //move to first shot
         Trajectory shot1 = drive.trajectoryBuilder(initForward.end())
                 .lineToLinearHeading(new Pose2d(-7.5, 43, Math.toRadians(0)))
@@ -100,11 +101,10 @@ public class RedTopRR extends LinearOpMode {
         while(launcherbelt.isBusy()) {}
         //launch ring3
         sleep(300);
-        launcherbelt.setTargetPosition(7500);
+        launcherbelt.setTargetPosition(5100);
         launcherbelt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         launcherbelt.setPower(1);
         while(launcherbelt.isBusy()) {}
-        launcher1.setPower(0);
         launcher2.setPower(0);
 
         ///////////three different paths depending on drop zone of wobble goal////////////
@@ -129,16 +129,21 @@ public class RedTopRR extends LinearOpMode {
                 drive.followTrajectory(moveToZoneAgain);
         }
 
+        feeder.setPower(0);
         ejectWobbleGoal();
+        launcher2.setPower(0.95);
 
         Trajectory moveToLine = drive.trajectoryBuilder(moveToZoneAgain.end(),true)
-                .splineTo(new Vector2d(-19,2), Math.toRadians(0))
+                .splineTo(new Vector2d(-7.5,43), Math.toRadians(0))
                 .build();
         drive.followTrajectory(moveToLine);
 
-        wobbleArmMotor.setTargetPosition(ARM_UP);
-        wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        wobbleArmMotor.setPower(ARM_POWER);
+        launcherbelt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcherbelt.setTargetPosition(2000);
+        launcherbelt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        launcherbelt.setPower(1);
+        while(launcherbelt.isBusy());
+        launcher2.setPower(0);
 
 
         if (isStopRequested()) return;
@@ -181,14 +186,19 @@ public class RedTopRR extends LinearOpMode {
         Trajectory moveToZone;
         Trajectory moveToWobble2;
         Trajectory approachWobble2;
+        Trajectory moveToRing;
         moveToZone = drive.trajectoryBuilder(shot1.end(),true)
-                .splineTo(new Vector2d(-29,32), Math.toRadians(-45))
+                .splineTo(new Vector2d(-29,33), Math.toRadians(-45))
                 .build();
         drive.followTrajectory(moveToZone);
         ejectWobbleGoal();
         intake();
-        moveToWobble2 = drive.trajectoryBuilder(moveToZone.end(),true)
-                .splineTo(new Vector2d(8.5,46.8), Math.toRadians(180))
+        moveToRing = drive.trajectoryBuilder(moveToZone.end(),true)
+                .lineToLinearHeading(new Pose2d(13.5,37.8, Math.toRadians(180)))
+                .build();
+        drive.followTrajectory(moveToRing);
+        moveToWobble2 = drive.trajectoryBuilder(moveToRing.end(),true)
+                .lineToLinearHeading(new Pose2d(8.5,46.8, Math.toRadians(180)))
                 .build();
         drive.followTrajectory(moveToWobble2);
 
@@ -201,7 +211,7 @@ public class RedTopRR extends LinearOpMode {
         pickUpWobble();
 
         moveToZoneAgain = drive.trajectoryBuilder(approachWobble2.end(),true)
-                .splineTo(new Vector2d(-20,27), Math.toRadians(-45))
+                .splineTo(new Vector2d(-23,34), Math.toRadians(-45))
                 .build();
         drive.followTrajectory(moveToZoneAgain);
     }
@@ -282,11 +292,11 @@ public class RedTopRR extends LinearOpMode {
         wobbleArmMotor.setPower(ARM_POWER);
         while (wobbleArmMotor.getCurrentPosition() < ARM_DOWN - 10){}
     }
-    private void intake(){
+    private void intake() {
         //intake
         feeder.setPower(1);
         launcherbelt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        launcherbelt.setTargetPosition(10000);
+        launcherbelt.setTargetPosition(12000);
         launcherbelt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         launcherbelt.setPower(1);
     }

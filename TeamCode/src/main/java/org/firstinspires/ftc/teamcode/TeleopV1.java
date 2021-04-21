@@ -182,7 +182,7 @@ public class TeleopV1 extends LinearOpMode {
 
             //Launcher conveyor belt
             if(RTrigger2 > 0) {
-                launcherbelt.setPower(RTrigger2 * 0.85);
+                launcherbelt.setPower(1);
                 feeder.setPower(1);
             } else if (RBumper2) {
                 launcherbelt.setPower(-0.20);

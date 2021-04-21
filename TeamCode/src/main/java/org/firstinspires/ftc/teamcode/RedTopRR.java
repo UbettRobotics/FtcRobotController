@@ -35,7 +35,7 @@ public class RedTopRR extends LinearOpMode {
         MainMecanumDrive drive = new MainMecanumDrive(hardwareMap);
         Robot.initAccessories(this);
         Pose2d startPose = new Pose2d(57, 20, Math.toRadians(0)); //init starting position
-        drive.setPoseEstimate(startPose);
+        drive.setPoseEstimate(startPose); //important
         //init servos
         blocker.setPosition(BLOCKER_OPEN);
         wobbleClaw.setPosition(0);
@@ -134,7 +134,7 @@ public class RedTopRR extends LinearOpMode {
         launcher2.setPower(0.95);
 
         Trajectory moveToLine = drive.trajectoryBuilder(moveToZoneAgain.end(),true)
-                .splineTo(new Vector2d(-7.5,43), Math.toRadians(0))
+                .splineTo(new Vector2d(-7.5,43), Math.toRadians(180))
                 .build();
         drive.followTrajectory(moveToLine);
 
@@ -192,13 +192,15 @@ public class RedTopRR extends LinearOpMode {
                 .build();
         drive.followTrajectory(moveToZone);
         ejectWobbleGoal();
-        intake();
+
         moveToRing = drive.trajectoryBuilder(moveToZone.end(),true)
-                .lineToLinearHeading(new Pose2d(13.5,37.8, Math.toRadians(180)))
+                .splineTo(new Vector2d(-4,28), Math.toRadians(-160))
                 .build();
         drive.followTrajectory(moveToRing);
+
+        sleep(500);
         moveToWobble2 = drive.trajectoryBuilder(moveToRing.end(),true)
-                .lineToLinearHeading(new Pose2d(8.5,46.8, Math.toRadians(180)))
+                .lineToSplineHeading(new Pose2d(8.5,46.8, Math.toRadians(0)))
                 .build();
         drive.followTrajectory(moveToWobble2);
 

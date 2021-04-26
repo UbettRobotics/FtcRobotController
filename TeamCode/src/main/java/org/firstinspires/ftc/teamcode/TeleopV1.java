@@ -149,24 +149,25 @@ public class TeleopV1 extends LinearOpMode {
             if(a2){
                 //launcher1.setPower(0.80);
                 launchPower = 0.75; //0.75
-                blocker.setPosition(BLOCKER_OPEN); //open
+                blocker.setPosition(BLOCKER_OPEN);
             } else if (LTrigger2 > 0) {
-                launchPower = 0.9; //0.8
-                blocker.setPosition(BLOCKER_OPEN); //open
+                launchPower = 0.85; //0.9
             } else if (LBumper2) {
                 launchPower = 1; //full
-                blocker.setPosition(BLOCKER_OPEN); //open
             } else if (dpadRight2) {
                 launchPower = -0.1; //backwards
-                blocker.setPosition(BLOCKER_OPEN);
             } else if (RStickX2 > 0.2 || RStickY2 > 0.2)  {
                 launchPower = 0.64;
-                blocker.setPosition(BLOCKER_OPEN);
             } else {
                 launchPower = 0;
-                blocker.setPosition(BLOCKER_CLOSED); //closed
             }
             launcher2.setPower(launchPower);
+
+            if(a1) {
+                blocker.setPosition(BLOCKER_OPEN);
+            } else if (!a2) {
+                blocker.setPosition(BLOCKER_CLOSED);
+            }
 
             //feeder servo
             if(dpadUP2){
@@ -210,7 +211,7 @@ public class TeleopV1 extends LinearOpMode {
             }
             if(b2) {
                 //go down
-                wobbleArmMotor.setTargetPosition(388);
+                wobbleArmMotor.setTargetPosition(351);
                 wobbleArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wobbleArmMotor.setPower(.5);
             }

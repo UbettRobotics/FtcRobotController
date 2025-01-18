@@ -21,7 +21,7 @@ public class RightOneWVison extends LinearOpMode  {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initAll(this);
+        initAll(this, false);
 
         //Prep Robot for Auto
         outtake.stopVSlide();

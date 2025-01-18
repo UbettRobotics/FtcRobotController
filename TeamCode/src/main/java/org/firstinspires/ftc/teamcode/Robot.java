@@ -85,8 +85,10 @@ public class Robot {
     }
 
 
-
     public static void initAll(OpMode opMode){
+        initAll(opMode, true);
+    }
+    public static void initAll(OpMode opMode, boolean left){
 
         initDrive(opMode);
         initAccessories(opMode);
@@ -97,7 +99,7 @@ public class Robot {
 
         prevC = (Control)c.clone();
 
-        ad = new AutonomousDrive((LinearOpMode) opMode);
+        ad = new AutonomousDrive((LinearOpMode) opMode, left);
 
         //Camera
 

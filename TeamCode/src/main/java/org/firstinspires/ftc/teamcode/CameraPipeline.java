@@ -32,6 +32,8 @@ public class CameraPipeline extends OpenCvPipeline {
     Mat mat2 = new Mat();
     Date date = new Date();
     Mat image;
+    Mat hierarchy;
+
 
 
     //color side
@@ -58,7 +60,7 @@ public class CameraPipeline extends OpenCvPipeline {
     private int satMax = 255;
     private int valMin = 47; //30
     private int valMax = 255;
-    private ArrayList<Double> coneAreaArray;
+    private ArrayList<Integer> coneAreaArray;
     private ArrayList<Mat> conarr = new ArrayList<Mat>();
     static double PERCENT_COLOR_THRESHOLD = 0.4;
 
@@ -84,6 +86,7 @@ public class CameraPipeline extends OpenCvPipeline {
 
         coneAreaArray = getContourArea(mat);
         telemetry.addData("List: ",getContourArea(mat));
+        telemetry.addData("Target X: ", this.findTarget(getContourArea(mat)));
 
 
 
@@ -114,7 +117,7 @@ public class CameraPipeline extends OpenCvPipeline {
 
 
 
-    public double findTarget(List<Double> list){
+    public double findTarget(List<Integer> list){
         if(list.size() == 0){return 0;}
 
 
@@ -178,17 +181,18 @@ public class CameraPipeline extends OpenCvPipeline {
 
 
 
-    private ArrayList<Double> getContourArea(Mat mat) {
+    private ArrayList<Integer> getContourArea(Mat mat) {
 
+        hierarchy = new Mat();
         image = mat.clone();
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        contours = new ArrayList<MatOfPoint>();
+
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        ArrayList<Integer> arr = new ArrayList<Integer>();
+        conarr = new ArrayList<Mat>();
 
 
-        ArrayList<Double> arr = new ArrayList<Double>();
-        conarr.clear();
-
-
-        telemetry.update();
 
         double minArea = 200;
         for (int i = 0; i < contours.size(); i++) {
@@ -196,9 +200,9 @@ public class CameraPipeline extends OpenCvPipeline {
             double contourArea = Imgproc.contourArea(contour);
             //Add any contours bigger than error size (ignore tiny bits) to array of all contours
             if(contourArea > minArea){
-                arr.add(contourArea);
                 conarr.add(contour);
                 Rect bounding = Imgproc.boundingRect(contour);
+                arr.add(bounding.x);
                 //Draw a rectangle on preview stream
                 Imgproc.rectangle(image, bounding, new Scalar(80,80,80), 4);
             }

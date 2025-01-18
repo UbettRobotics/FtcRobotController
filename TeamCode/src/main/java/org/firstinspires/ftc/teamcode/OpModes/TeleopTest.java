@@ -47,7 +47,7 @@ public class TeleopTest extends LinearOpMode {
 
 
 
-        initAll(this);
+        initAll(this, true);
         intake.tsTarget = intake.tsMiddle;
         intake.setTransferServo();
 

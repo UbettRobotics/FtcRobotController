@@ -41,7 +41,7 @@ public class Teleop extends LinearOpMode {
 //
 //        });
 
-        initAll(this);
+        initAll(this, true);
 
         waitForStart();
         intake.tsTarget = intake.tsMiddle;

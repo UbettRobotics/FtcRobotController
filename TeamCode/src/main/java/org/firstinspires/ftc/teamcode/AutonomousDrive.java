@@ -26,14 +26,17 @@ public class AutonomousDrive {
      */
 
 
-    public AutonomousDrive(LinearOpMode opMode) {
+    public AutonomousDrive(LinearOpMode opMode, boolean left) {
 
         this.opMode = opMode;
         odo = opMode.hardwareMap.get(GoBildaPinpointDriver.class,"odo");
         odo.setOffsets(139.5, 101.6);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        resetOdo((LinearOpMode)opMode);
+        double x = 8.5;
+        double y = (left) ? 36 : 108;
+        double heading = (left) ? 180 : 180;
+        resetOdo((LinearOpMode)opMode, x, y, heading);
         ((LinearOpMode)opMode).sleep(250);
 
 
@@ -262,12 +265,16 @@ public class AutonomousDrive {
         return odo.getPosition().getHeading(AngleUnit.DEGREES) + 180;
     }
 
-    public void resetOdo(LinearOpMode opMode){
+    public void resetOdo(LinearOpMode opMode, double x, double y, double heading){ // left is 8.5x and 36y // right is __x and __y
         odo.recalibrateIMU();
         opMode.sleep(500);
         odo.resetPosAndIMU();
         opMode.sleep(400);
-        odo.setPosition(new Pose2D(DistanceUnit.INCH,8.5,36,AngleUnit.DEGREES, 180));
+        odo.setPosition(new Pose2D(DistanceUnit.INCH,x,y,AngleUnit.DEGREES, heading));
+    }
+
+    public void setEstimatedPosition(double x, double y, double heading){
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, x, y, AngleUnit.DEGREES, heading));
     }
 
     //Returns False if robot is not moving substantially
@@ -415,7 +422,7 @@ public class AutonomousDrive {
         double v3; //lb // was sin
         double v4; //rb // was
 
-        while(Math.abs(targetYDistance) > this.errorTolerance + .065 && Math.abs(targetYDistance) > this.errorTolerance + .065 && opMode.opModeIsActive()){
+        while((Math.abs(targetYDistance) > this.errorTolerance + .065 || Math.abs(targetXDistance) > this.errorTolerance + .065) && opMode.opModeIsActive()){
             odo.update();
 
             if(isStuck(totalDistance))return;

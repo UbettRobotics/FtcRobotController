@@ -14,7 +14,7 @@ public class LeftThreeWTurning extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initAll(this);
+        initAll(this, true);
 
         //Prep Robot for Auto
         outtake.stopVSlide();

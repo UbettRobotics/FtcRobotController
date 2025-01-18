@@ -10,7 +10,7 @@ import static org.firstinspires.ftc.teamcode.Robot.*;
 public class Motortester extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        initAll(this);
+        initAll(this, true);
         waitForStart();
         int direction = 1;
         boolean prevoptions = false;

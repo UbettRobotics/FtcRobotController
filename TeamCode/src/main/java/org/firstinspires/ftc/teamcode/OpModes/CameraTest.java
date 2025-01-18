@@ -60,7 +60,7 @@ public class CameraTest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()){
-            cam.getrectX();
+
 
             this.sleep(500);
         }

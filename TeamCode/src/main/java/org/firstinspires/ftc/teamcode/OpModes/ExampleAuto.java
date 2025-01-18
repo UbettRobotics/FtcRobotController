@@ -10,7 +10,7 @@ public class ExampleAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initAll(this);
+        initAll(this, true);
         outtake.stopVSlide();
         outtake.setBucketPos(outtake.bucketRegPos);
         intake.tsTarget = intake.tsMiddle;

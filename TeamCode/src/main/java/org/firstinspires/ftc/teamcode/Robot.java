@@ -8,11 +8,14 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+
+import java.sql.Driver;
 
 
 public class Robot {
@@ -42,10 +45,13 @@ public class Robot {
 
     public static Intake intake;
     public static Outtake outtake;
+    public static Ascension ascension;
 
     public static AutonomousDrive ad;
     public static IMUControl imu;
     //public static AprilTagPipeline aptag;
+
+    public static DriverAutomation da;
 
 
     public static boolean foundBottom = false;
@@ -81,6 +87,7 @@ public class Robot {
         //camServo = opMode.hardwareMap.get(Servo.class, "camservo");
         intake = new Intake(opMode);
         outtake = new Outtake(opMode);
+        ascension = new Ascension(opMode);
         foundBottom = false;
     }
 
@@ -100,6 +107,11 @@ public class Robot {
         prevC = (Control)c.clone();
 
         ad = new AutonomousDrive((LinearOpMode) opMode, left);
+        da = new DriverAutomation();
+
+
+
+
 
         //Camera
 
@@ -216,8 +228,8 @@ public class Robot {
         }
 
 
-        drive(v2, v4, v3, v1);
-        return new double[] {v2, v4, v3, v1};
+        //drive(v2, v4, v3, v1);
+        return new double[] {v1, v2, v3, v4};
 
 
 
@@ -237,20 +249,16 @@ public class Robot {
 
 
         if (Math.abs(c.LStickX) > 0 || Math.abs(c.LStickY) > 0 || Math.abs(c.RStickX) > 0) {
-            double rotation = ad.getHeading()-180;
+            double y = -c.LStickY;
+            double x = c.LStickX * 1.1;
+            double rx = c.RStickX;
+            double den = Math.max(Math.abs(y)+Math.abs(x) + Math.abs(rx), 1);
 
 
-            double newX = -c.LStickX * Math.cos(rotation) - -c.LStickY * Math.sin(rotation); //Angle Difference Identity
-            double newY = c.LStickY * Math.cos(rotation) - -c.LStickX * Math.sin(rotation); //Trigonometry
-
-            double r = Math.hypot(newX, newY);
-            double robotAngle = Math.atan2(newY, newX) - Math.PI / 4;
-            double rightX = -c.RStickX;
-
-            v1 = r * Math.cos(robotAngle) + rightX; //lf
-            v2 = r * Math.sin(robotAngle) - rightX; //rf
-            v3 = r * Math.sin(robotAngle) + rightX; //lb
-            v4 = r * Math.cos(robotAngle) - rightX; //rb
+            v1 = (y+x+rx)/den; //lf
+            v2 = (y-x-rx)/den;//rf
+            v3 = (y-x+rx)/den; //lb
+            v4 = (y+x-rx)/den; //rb
 
             Robot.drive(v2,v4,v3,v1);
 
@@ -376,7 +384,7 @@ public class Robot {
             }
 
 
-            if (!(outtake.targetPos == 0 && Math.abs(outtake.targetPos - outtake.getVSlidePos()) < 5) || outtake.getVSlidePos() < 0) {
+            if (!(outtake.targetPos == 0 && Math.abs(outtake.targetPos - outtake.getVSlidePos()) < 5)) {
                 outtake.vslideToPos(outtake.targetPos, outtake.slidePower);
             } else {
                 outtake.stopVSlide();
@@ -407,6 +415,18 @@ public class Robot {
         }
 
         outtake.setBucketPos(outtake.targetBucketPos);
+
+    }
+
+    public static void rcAscension(){
+        if(c.bigButton && !prevC.bigButton){
+            if(ascension.up){
+                ascension.down();
+            } else {
+                ascension.up();
+            }
+        }
+
 
     }
 

@@ -25,8 +25,8 @@ public class Intake {
     double inSlidePos = 0;
     double hSlideMax = 2400;
 
-    public double tsDown = .17; //
-    public double tsMiddle = .525;
+    public double tsDown = .15; // 0.17
+    public double tsMiddle = 0.535;//0.525
     public double tsUp = tsMiddle;//.71; // position that dumps the sample
     public double tsTarget = tsMiddle;
 
@@ -107,15 +107,19 @@ public class Intake {
 
 
 
-    public SampleColor getColor(){
+   /* public SampleColor getColor(){
         if(cs.red() > 100) return SampleColor.RED;
         if(cs.blue() > 100) return SampleColor.BLUE;
         return SampleColor.YELLOW;
     }
 
+
+
     public boolean detectSample(){
         return (ds.getDistance(DistanceUnit.MM) < 15);
     }
+
+    */
 
 
 

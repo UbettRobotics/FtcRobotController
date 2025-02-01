@@ -30,7 +30,7 @@ public class Outtake {
     public double slidePower = 1; //temp value
 
     //Vars for Bucket Dumping Positions
-    public double bucketOutPos = 0.3;
+    public double bucketOutPos = 0.32;
     public double bucketRegPos = 0.65;
 
     public double targetBucketPos = bucketRegPos;
@@ -62,6 +62,7 @@ public class Outtake {
         vslide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         vslide.setPower(power);
     }
+
 
     //Set Bucket Position
     public void setBucketPos(double pos){

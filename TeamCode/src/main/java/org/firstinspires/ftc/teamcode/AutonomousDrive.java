@@ -11,9 +11,9 @@ public class AutonomousDrive {
 
     public double errorTolerance = 0.015;
 
-    private GoBildaPinpointDriver odo;
+    public GoBildaPinpointDriver odo;
 
-    private LinearOpMode opMode;
+    public LinearOpMode opMode;
 
 
     /*
@@ -34,8 +34,8 @@ public class AutonomousDrive {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         double x = 8.5;
-        double y = (left) ? 36 : 108;
-        double heading = (left) ? 180 : 180;
+        double y = (left) ? 36 : 72;
+        double heading = (left) ? 180 : 0;
         resetOdo((LinearOpMode)opMode, x, y, heading);
         ((LinearOpMode)opMode).sleep(250);
 
@@ -99,6 +99,7 @@ public class AutonomousDrive {
     }
 
 
+
     public void goToHeading(double degrees){
         if(degrees < 0) {
             degrees = (360 + (degrees % -360));
@@ -107,7 +108,7 @@ public class AutonomousDrive {
         }
         double currentHeading = getHeading();
         double angleTogo = degrees - currentHeading;
-        while(opMode.opModeIsActive() && Math.abs(angleTogo) > .5){
+        while(opMode.opModeIsActive() && Math.abs(angleTogo) > .1){
             currentHeading =  getHeading();
 
             angleTogo = degrees - currentHeading;
@@ -264,6 +265,8 @@ public class AutonomousDrive {
         //used to be 180 degrees
         return odo.getPosition().getHeading(AngleUnit.DEGREES) + 180;
     }
+
+
 
     public void resetOdo(LinearOpMode opMode, double x, double y, double heading){ // left is 8.5x and 36y // right is __x and __y
         odo.recalibrateIMU();
@@ -448,11 +451,19 @@ public class AutonomousDrive {
             if(Math.abs(v4) > .01 && Math.abs(v4) < .15) v4 = Math.abs(v1)/v1 * .2;
 
             if (v1 > 0 && v4 > 0 && v2 < 0 && v3 < 0){
-                v1 += .15;
-                v4 += .15;
+//                v1 += .15;
+//                v4 += .15;
+                v1 *= 1.1;
+                v2 *= 1.1;
+                v3 *= 1.1;
+                v4 *= 1.1;
             } else if (v1 < 0 && v4 < 0 && v2 > 0 && v3 > 0){
-                v2 += .15;
-                v3 += .15;
+//                v2 += .15;
+//                v3 += .15;
+                v1 *= 1.1;
+                v2 *= 1.1;
+                v3 *= 1.1;
+                v4 *= 1.1;
             }
 
             Robot.drive(v2,v4,v3,v1);
@@ -470,6 +481,8 @@ public class AutonomousDrive {
 
 
     }
+
+
 
 
 

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -55,6 +53,13 @@ public class Control implements Cloneable{
     public boolean options;
     public boolean options2;
 
+    public boolean bigButton;
+    public boolean bigButton2;
+
+    public float padX;
+    public float padY;
+
+
 
     public Control(OpMode opMode) {
         gm1 = opMode.gamepad1;
@@ -103,6 +108,15 @@ public class Control implements Cloneable{
 
         options = gm1.options;
         options2 = gm2.options;
+
+        bigButton = gm1.touchpad;
+        bigButton2 = gm2.touchpad;
+
+        padX = gm1.touchpad_finger_1_x;
+        padY = gm1.touchpad_finger_1_y;
+
+
+
 
 
 

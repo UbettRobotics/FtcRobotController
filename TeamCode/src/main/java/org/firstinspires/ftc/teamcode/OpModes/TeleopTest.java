@@ -58,20 +58,22 @@ public class TeleopTest extends LinearOpMode {
             outtake.resetVSlide();
 
 
-            if(Math.abs(c.LStickY2) > .05){
-                outtake.vslideToPow(c.LStickY2);
+            if(c.a1){
+                ascension.slidesToPow(.5);
+            } else if (c.b1){
+                ascension.slidesToPow(-.5);
             } else {
-                outtake.vslideToPow(0);
+                ascension.slidesToPow(0);
             }
-            outtake.setBucketPos(c.RTrigger2);
 
-            Robot.rcDrivingFC();
-
+            Robot.rcDriving();
 
 
-            telemetry.addData("vslide encoder", outtake.getVSlidePos());
-            telemetry.addData("bucket pos", outtake.getBucketPos());
-            telemetry.addData("vslide limit", outtake.slideAtBottom());
+
+            telemetry.addData("left encoder", ascension.leftMotor.getCurrentPosition());
+            telemetry.addData("right encoder", ascension.rightMotor.getCurrentPosition());
+            telemetry.addData("Gamepad pos X: ", c.padX);
+            telemetry.addData("Gamepad pos Y: ", c.padY);
             telemetry.update();
 
         }

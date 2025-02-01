@@ -35,6 +35,7 @@ public class CameraPipeline extends OpenCvPipeline {
     Mat hierarchy;
 
 
+    private static double  power;
 
     //color side
     int fieldColor = 1;
@@ -82,11 +83,18 @@ public class CameraPipeline extends OpenCvPipeline {
 
         Imgproc.findContours(mat, contours, mat2, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
 
+        power = this.centerRobo(this.findTarget(getContourArea(mat)));
 
-
-        coneAreaArray = getContourArea(mat);
         telemetry.addData("List: ",getContourArea(mat));
-        telemetry.addData("Target X: ", this.findTarget(getContourArea(mat)));
+        telemetry.addData("Target X: ", this.findTarget(getContourArea(mat))[0]);
+        telemetry.addData("Target Width: ", this.findTarget(getContourArea(mat))[1]);
+
+        telemetry.addData("Target X center: ", this.findTarget(getContourArea(mat))[1]/2 +this.findTarget(getContourArea(mat))[0]);
+        telemetry.addData("Target X center: ", this.getTargetPos());
+        telemetry.addData("Power: ", this.centerRobo(this.findTarget(getContourArea(mat))));
+
+
+
 
 
 
@@ -108,6 +116,54 @@ public class CameraPipeline extends OpenCvPipeline {
 
     public Side getSide() {return side;}
     public int getrectX(){return rectX;}
+    public double getTargetPos(){
+        //1.5 in irl
+        double[] list = findTarget(getContourArea(mat));
+
+
+
+
+        //convert pixels to inches
+        double ratio =1.5/list[1];
+
+        //middle 160
+
+        double offset = 5.5 - ((list[0] + list[1]/2 )- 160)*(ratio);
+
+
+
+
+
+
+
+
+        return offset;
+    }
+
+    public double getPow(){
+        return power;
+    }
+
+    public boolean isCenter(){
+        double[] list = findTarget(getContourArea(mat));
+
+        double center = list[0]+(list[1]/2);
+        return (Math.abs(160 - center) <= 10);
+    }
+
+    public double centerRobo(double[] list){
+
+
+        double center = list[0]+(list[1]/2);
+
+
+
+        return  center - 160;
+
+
+
+
+    }
 
 
 
@@ -117,20 +173,23 @@ public class CameraPipeline extends OpenCvPipeline {
 
 
 
-    public double findTarget(List<Integer> list){
-        if(list.size() == 0){return 0;}
+
+    public double[] findTarget(List<Rect> list){
+        double[] info = {0,1};
+        if(list.size() == 0){return info;}
 
 
-        double pos = list.get(0);
+        int pos = list.get(0).x;
         int index = 0;
         for(int i = 1; i < list.size(); i++){
-           if( list.get(i) > pos){
+           if( list.get(i).x > pos){
                index = i;
-               pos = list.get(i);
+               pos = list.get(i).x;
            }
         }
-
-        return list.get(index);
+        info[0] = list.get(index).x;
+        info[1] = list.get(index).width;
+        return info;
     }
 
 
@@ -181,7 +240,7 @@ public class CameraPipeline extends OpenCvPipeline {
 
 
 
-    private ArrayList<Integer> getContourArea(Mat mat) {
+    private ArrayList<Rect> getContourArea(Mat mat) {
 
         hierarchy = new Mat();
         image = mat.clone();
@@ -189,7 +248,7 @@ public class CameraPipeline extends OpenCvPipeline {
 
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        ArrayList<Integer> arr = new ArrayList<Integer>();
+        ArrayList<Rect> arr = new ArrayList<Rect>();
         conarr = new ArrayList<Mat>();
 
 
@@ -202,7 +261,8 @@ public class CameraPipeline extends OpenCvPipeline {
             if(contourArea > minArea){
                 conarr.add(contour);
                 Rect bounding = Imgproc.boundingRect(contour);
-                arr.add(bounding.x);
+
+                arr.add(bounding);
                 //Draw a rectangle on preview stream
                 Imgproc.rectangle(image, bounding, new Scalar(80,80,80), 4);
             }

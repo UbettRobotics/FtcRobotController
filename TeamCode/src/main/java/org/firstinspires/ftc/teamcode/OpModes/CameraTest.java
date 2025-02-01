@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.teamcode.Robot.ad;
 import static org.firstinspires.ftc.teamcode.Robot.initAll;
 import static org.firstinspires.ftc.teamcode.Robot.intake;
 import static org.firstinspires.ftc.teamcode.Robot.outtake;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.CameraPipeline;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -23,6 +25,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 public class CameraTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
+        initAll(this,false);
         CameraPipeline cam;
 
         int cameraMonitorViewId;
@@ -36,7 +39,8 @@ public class CameraTest extends LinearOpMode {
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
 
         webcam.setPipeline(cam);
-
+        intake.tsTarget = intake.tsMiddle;
+        intake.setTransferServo();
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
@@ -55,14 +59,26 @@ public class CameraTest extends LinearOpMode {
 
         });
 
-        cam.getrectX();
 
         waitForStart();
+        ad.goToPointConstantHeading(24,110);
+        ad.goToHeading(0);
 
-        while (opModeIsActive()){
+        sleep(1000);
 
-
-            this.sleep(500);
+        while(!cam.isCenter()){
+            double power = cam.getPow();
+            Robot.drive(power, -power, power, -power);
         }
+
+        Robot.drive(0, 0, 0, 0);
+        sleep(5000);
+        ad.goToPointConstantHeading(9,ad.getY());
+
+
+
+        sleep(5000);
+
+
     }
 }

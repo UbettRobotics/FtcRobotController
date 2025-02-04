@@ -245,20 +245,35 @@ public class Robot {
         double v4 = 0; // rb
 
         double sp = .25;
+        ad.odo.update();
 
 
 
         if (Math.abs(c.LStickX) > 0 || Math.abs(c.LStickY) > 0 || Math.abs(c.RStickX) > 0) {
+
+            double heading = -Math.toRadians(ad.odo.getHeading());
             double y = -c.LStickY;
             double x = c.LStickX * 1.1;
             double rx = c.RStickX;
-            double den = Math.max(Math.abs(y)+Math.abs(x) + Math.abs(rx), 1);
+
+            double feildX = x * Math.cos(heading) - y * Math.sin(heading);
+            double feildY = x * Math.sin(heading) + y * Math.cos(heading);
 
 
-            v1 = (y+x+rx)/den; //lf
-            v2 = (y-x-rx)/den;//rf
-            v3 = (y-x+rx)/den; //lb
-            v4 = (y+x-rx)/den; //rb
+            v1 = feildY + feildX + rx; //lf
+            v2 =  feildY - feildX - rx; //rf
+            v3 =  feildY - feildX + rx;  //lb
+            v4 =  feildY + feildX - rx;  //rb
+
+            double maxPow = Math.max(1.0, v1);
+            maxPow = Math.max(maxPow, v2);
+            maxPow = Math.max(maxPow, v3);
+            maxPow = Math.max(maxPow, v4);
+
+            v1 /= maxPow;
+            v2 /= maxPow;
+            v3 /= maxPow;
+            v4 /= maxPow;
 
             Robot.drive(v2,v4,v3,v1);
 

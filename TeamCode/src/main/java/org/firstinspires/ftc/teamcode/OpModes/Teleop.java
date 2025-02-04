@@ -56,8 +56,7 @@ public class Teleop extends LinearOpMode {
             c.update();
             state = da.update_auto_state(prevC, c, state);
 
-            power = (Math.abs(c.RStickX)> 0.05||Math.abs(c.LStickX)> 0.05||Math.abs(c.LStickY) > 0.05) ?
-                    rcDriving():da.cycleSample(this);
+            power = rcDriving();
 
             rcIntake();
             rcOuttake();
@@ -67,7 +66,7 @@ public class Teleop extends LinearOpMode {
 
             Robot.drive(power[1],power[3],power[2],power[0]);
 
-            state = da.auto_intake_and_transfer(state);
+            //state = da.auto_intake_and_transfer(state);
 
 
             telemetry.addData("intake slide pos", intake.getCurrentHPos());

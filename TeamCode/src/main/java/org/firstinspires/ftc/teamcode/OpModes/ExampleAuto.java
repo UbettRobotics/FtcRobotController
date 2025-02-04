@@ -21,11 +21,12 @@ public class ExampleAuto extends LinearOpMode {
         telemetry.addData("starty", ad.getY());
         telemetry.update();
         sleep(200);
-        for(int i = 0; i <= 360; i+=90){
-            ad.goToHeading(i);
-            this.sleep(500);
-        }
-
+        ad.goToHeading(0);
+        ad.goToPointConstantHeading(60,24);
+        sleep(1000);
+        ad.goToHeading(270);
+        ad.goToPointConstantHeading(8.6,36);
+        ad.goToHeading(0);
 
 
         sleep(3000);

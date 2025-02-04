@@ -65,8 +65,9 @@ public class TeleopTest extends LinearOpMode {
             } else {
                 ascension.slidesToPow(0);
             }
+            ad.odo.update();
 
-            Robot.rcDriving();
+            Robot.rcDrivingFC();
 
 
 

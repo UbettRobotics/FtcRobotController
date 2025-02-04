@@ -11,7 +11,7 @@ public class AutonomousDrive {
 
     public double errorTolerance = 0.015;
 
-    public GoBildaPinpointDriver odo;
+    public static GoBildaPinpointDriver odo;
 
     public LinearOpMode opMode;
 
@@ -133,7 +133,7 @@ public class AutonomousDrive {
 
         }
         Robot.drive(0, 0, 0, 0);
-        opMode.sleep(150);
+        opMode.sleep(25);
     }
 
     public void goToHeadingEvent(double degrees, double degreesLeftToEvent, event ev){
@@ -240,13 +240,13 @@ public class AutonomousDrive {
     }
 
     public static double powerCurvingOmni(double distanceToGo){
-        double slope = 18;
-        double max = .90;
-        double min = .25;
+        double slope = 15;
+        double max = 1;
+        double min = .15;
         if(distanceToGo > 0) {
-            return Math.max(Math.min(distanceToGo / slope, max), min);
+            return Math.max(Math.min((distanceToGo / slope), max), min);
         } else {
-            return Math.min(Math.max(distanceToGo / slope, -max), -min);
+            return Math.min(Math.max((distanceToGo / slope), -max), -min);
         }
     }
 
@@ -412,7 +412,7 @@ public class AutonomousDrive {
         // try switching from atan2 to atan
         //Get X and Y Distance and Total Distance
         odo.update();
-        double targetYDistance = targetY - getY();
+        double targetYDistance = (targetY - getY()) * 1.1;
         double targetXDistance = targetX - getX();
         double totalDistance = Math.hypot(targetYDistance, targetXDistance);
         double angle = Math.atan2(targetYDistance, targetXDistance);
@@ -430,7 +430,7 @@ public class AutonomousDrive {
 
             if(isStuck(totalDistance))return;
 
-            targetYDistance = (targetY - odo.getPosition().getY(DistanceUnit.INCH));
+            targetYDistance = (targetY - odo.getPosition().getY(DistanceUnit.INCH)) * 1.1;
             targetXDistance = (targetX - odo.getPosition().getX(DistanceUnit.INCH));
             totalDistance = Math.hypot(targetYDistance, targetXDistance);
             angle = Math.atan2(targetYDistance, targetXDistance) + Math.PI/4 + Math.toRadians(getHeading());
@@ -450,20 +450,21 @@ public class AutonomousDrive {
             if(Math.abs(v3) > .01 && Math.abs(v3) < .15) v3 = Math.abs(v1)/v1 * .2;
             if(Math.abs(v4) > .01 && Math.abs(v4) < .15) v4 = Math.abs(v1)/v1 * .2;
 
+            double scale_factor = 1.2;
             if (v1 > 0 && v4 > 0 && v2 < 0 && v3 < 0){
 //                v1 += .15;
 //                v4 += .15;
-                v1 *= 1.1;
-                v2 *= 1.1;
-                v3 *= 1.1;
-                v4 *= 1.1;
+                v1 *= scale_factor;
+                v2 *= scale_factor;
+                v3 *= scale_factor;
+                v4 *= scale_factor;
             } else if (v1 < 0 && v4 < 0 && v2 > 0 && v3 > 0){
 //                v2 += .15;
 //                v3 += .15;
-                v1 *= 1.1;
-                v2 *= 1.1;
-                v3 *= 1.1;
-                v4 *= 1.1;
+                v1 *= scale_factor;
+                v2 *= scale_factor;
+                v3 *= scale_factor;
+                v4 *= scale_factor;
             }
 
             Robot.drive(v2,v4,v3,v1);

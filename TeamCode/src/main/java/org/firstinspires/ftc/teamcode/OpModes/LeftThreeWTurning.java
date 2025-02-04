@@ -39,6 +39,7 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         goAndScore(true, false, false);
 
+        sleep(3000);
     }
     //Method Drives Robot to Bucket and Dumps Sample
     public void goAndScore(boolean high, boolean goToPos, boolean extendHSlide){
@@ -49,12 +50,12 @@ public class LeftThreeWTurning extends LinearOpMode {
             outtake.vslideToPos(outtake.lowBucketSlidePos, outtake.slidePower);
         }
         if(extendHSlide) {
-            intake.hslideToPos(intake.slideOut - 600, .75);
+            intake.hslideToPos(intake.slideOut - 600, .5);
         }
 
         if(goToPos) {
             ad.goToHeading(0);
-            ad.goToPointConstantHeading(14.5, 13);
+            ad.goToPointConstantHeading(14.5, 12.5);
         }
         ad.goToHeading(315);
         intake.stopWheels();
@@ -84,7 +85,7 @@ public class LeftThreeWTurning extends LinearOpMode {
                 angle = 22; // 20
                 break;
             case 2:
-                angle = 3; //5
+                angle = 1; //5
                 break;
             case 3:
                 angle = 344;//346
@@ -100,7 +101,13 @@ public class LeftThreeWTurning extends LinearOpMode {
 
 
         ad.goToHeading(angle);
-
+        sleep(250);
+        if(sample == 2 || sample == 3){
+            sleep(200);
+        }
+        if(sample == 3){
+            sleep(100);
+        }
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
 
@@ -111,6 +118,9 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         //Turn Active Intake On
         sleep(750);
+        if(sample == 1 || sample == 3){
+            sleep(250);
+        }
 
 
         //Move Transfer Servo to Middle
@@ -124,7 +134,7 @@ public class LeftThreeWTurning extends LinearOpMode {
         //Transfer Sample
         intake.runWheels(true);
 
-        sleep(1000);
+        sleep(800);
 
 
         //intake.stopWheels();

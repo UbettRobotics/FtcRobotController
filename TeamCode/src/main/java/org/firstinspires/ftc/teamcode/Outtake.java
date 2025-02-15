@@ -30,8 +30,8 @@ public class Outtake {
     public double slidePower = 1; //temp value
 
     //Vars for Bucket Dumping Positions
-    public double bucketOutPos = 0.32;
-    public double bucketRegPos = 0.67;
+    public double bucketOutPos = 0.25;
+    public double bucketRegPos = 0.625;
 
     public double targetBucketPos = bucketRegPos;
 

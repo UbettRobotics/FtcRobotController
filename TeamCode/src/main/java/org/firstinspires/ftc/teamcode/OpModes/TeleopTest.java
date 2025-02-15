@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
+import org.firstinspires.ftc.teamcode.Ascension;
 import org.firstinspires.ftc.teamcode.AutonomousDrive;
 import org.firstinspires.ftc.teamcode.IMUControl;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -50,6 +51,7 @@ public class TeleopTest extends LinearOpMode {
         initAll(this, true);
         intake.tsTarget = intake.tsMiddle;
         intake.setTransferServo();
+        intake.hslideToPos(0, 1.0);
 
         waitForStart();
         while(opModeIsActive()){
@@ -58,23 +60,34 @@ public class TeleopTest extends LinearOpMode {
             outtake.resetVSlide();
 
 
-            if(c.a1){
+            /*if(c.a1){
                 ascension.slidesToPow(.5);
             } else if (c.b1){
                 ascension.slidesToPow(-.5);
             } else {
                 ascension.slidesToPow(0);
             }
+
+             */
+
             ad.odo.update();
 
-            Robot.rcDrivingFC();
+            //ascension.clawExtenderToPos(c.LStickY2);
+            if(Math.abs(c.RStickY2) > .05){
+                ascension.slidesToPow(c.RStickY2);
+            }
+            else{
+                ascension.slidesToPos(ascension.rightMotor.getCurrentPosition(), 1.0);
+            }
+//
+//           /* telemetry.addData("left encoder", ascension.leftMotor.getCurrentPosition());
 
+           // telemetry.addData("right encoder", ascension.rightMotor.getCurrentPosition());
 
-
-            telemetry.addData("left encoder", ascension.leftMotor.getCurrentPosition());
-            telemetry.addData("right encoder", ascension.rightMotor.getCurrentPosition());
+//            telemetry.addData("claw extender pos", ascension.clawExtenderR.getPosition());
             telemetry.addData("Gamepad pos X: ", c.padX);
             telemetry.addData("Gamepad pos Y: ", c.padY);
+            telemetry.addData("Robot head: ", ad.odo.getHeading());
             telemetry.update();
 
         }

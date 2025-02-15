@@ -15,6 +15,9 @@ public class AutonomousDrive {
 
     public LinearOpMode opMode;
 
+    public static  double Integral = 0;
+
+
 
     /*
         180 is forward
@@ -240,14 +243,26 @@ public class AutonomousDrive {
     }
 
     public static double powerCurvingOmni(double distanceToGo){
-        double slope = 15;
-        double max = 1;
-        double min = .15;
-        if(distanceToGo > 0) {
-            return Math.max(Math.min((distanceToGo / slope), max), min);
-        } else {
-            return Math.min(Math.max((distanceToGo / slope), -max), -min);
+        double slope = 24;
+        double max = 0.9;
+        double min = .20;
+        double kD = 0.001;
+
+
+
+        if(distanceToGo < 4){
+            Integral += distanceToGo;
         }
+
+        double speed = Math.hypot(odo.getVelocity().getX(DistanceUnit.INCH),odo.getVelocity().getY(DistanceUnit.INCH));
+        speed = (distanceToGo > 0)? speed:-speed;
+        if(distanceToGo > 0) {
+            return Math.max( Math.min((distanceToGo/slope) - (speed * kD),max), min);
+        } else {
+            return Math.min(Math.min((distanceToGo/slope) - (speed * kD),max), -min);
+        }
+
+
     }
 
     public double getX(){
@@ -425,7 +440,7 @@ public class AutonomousDrive {
         double v3; //lb // was sin
         double v4; //rb // was
 
-        while((Math.abs(targetYDistance) > this.errorTolerance + .065 || Math.abs(targetXDistance) > this.errorTolerance + .065) && opMode.opModeIsActive()){
+        while((Math.abs(targetYDistance) > this.errorTolerance + .75 || Math.abs(targetXDistance) > this.errorTolerance + .75) && opMode.opModeIsActive()){
             odo.update();
 
             if(isStuck(totalDistance))return;
@@ -445,12 +460,12 @@ public class AutonomousDrive {
             v4 = power * Math.sin(angle); //rb // was
 
 
-            if(Math.abs(v1) > .01 && Math.abs(v1) < .15) v1 = Math.abs(v1)/v1 * .2;
-            if(Math.abs(v2) > .01 && Math.abs(v2) < .15) v2 = Math.abs(v1)/v1 * .2;
-            if(Math.abs(v3) > .01 && Math.abs(v3) < .15) v3 = Math.abs(v1)/v1 * .2;
-            if(Math.abs(v4) > .01 && Math.abs(v4) < .15) v4 = Math.abs(v1)/v1 * .2;
+//            if(Math.abs(v1) > .01 && Math.abs(v1) < .15) v1 = Math.abs(v1)/v1 * .2;
+//            if(Math.abs(v2) > .01 && Math.abs(v2) < .15) v2 = Math.abs(v1)/v1 * .2;
+//            if(Math.abs(v3) > .01 && Math.abs(v3) < .15) v3 = Math.abs(v1)/v1 * .2;
+//            if(Math.abs(v4) > .01 && Math.abs(v4) < .15) v4 = Math.abs(v1)/v1 * .2;
 
-            double scale_factor = 1.2;
+            double scale_factor = 1.5;
             if (v1 > 0 && v4 > 0 && v2 < 0 && v3 < 0){
 //                v1 += .15;
 //                v4 += .15;

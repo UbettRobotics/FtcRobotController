@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.Robot.intake;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -41,8 +43,8 @@ public class Intake {
         wheelServo = opMode.hardwareMap.get(Servo.class, "servoWheelBlue");
         transferServo = opMode.hardwareMap.get(Servo.class, "servoTransferWhite");
 
-//        cs = opMode.hardwareMap.get(ColorSensor.class, "csi");
-//        ds = (DistanceSensor)cs;
+        cs = opMode.hardwareMap.get(ColorSensor.class, "csi");
+        ds = (DistanceSensor)cs;
 
         hslideBottom = opMode.hardwareMap.get(TouchSensor.class, "hslidelimit");
         hslide.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -65,7 +67,6 @@ public class Intake {
     }
 
     public void runSlide(double power){
-
         hslide.setPower(power);
 
     }
@@ -107,7 +108,7 @@ public class Intake {
 
 
 
-   /* public SampleColor getColor(){
+   public SampleColor getColor(){
         if(cs.red() > 100) return SampleColor.RED;
         if(cs.blue() > 100) return SampleColor.BLUE;
         return SampleColor.YELLOW;
@@ -115,11 +116,15 @@ public class Intake {
 
 
 
-    public boolean detectSample(){
-        return (ds.getDistance(DistanceUnit.MM) < 15);
+    public boolean hasSample(){
+        return ((intake.cs.red() + intake.cs.green() + intake.cs.blue())/3.0 < 20);
     }
 
-    */
+    public double getDSDistance(){
+        return ds.getDistance(DistanceUnit.INCH);
+    }
+
+
 
 
 

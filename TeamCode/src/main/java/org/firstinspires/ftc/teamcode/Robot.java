@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorHuskyLens;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -34,6 +36,7 @@ public class Robot {
 
     public static Servo camServo;
 
+    public static HuskeyAiCamera huskCam;
 
     public static double gear = 1;
     private static double gearprev = 1;
@@ -89,6 +92,7 @@ public class Robot {
         outtake = new Outtake(opMode);
         ascension = new Ascension(opMode);
         foundBottom = false;
+        huskCam = new HuskeyAiCamera((LinearOpMode)opMode);
     }
 
 
@@ -108,6 +112,8 @@ public class Robot {
 
         ad = new AutonomousDrive((LinearOpMode) opMode, left);
         da = new DriverAutomation();
+
+
 
 
 
@@ -235,7 +241,7 @@ public class Robot {
 
     }
 
-    public static double[] rcDrivingFC(){
+    public static double[] rcDrivingFC(double botHeading){
 
         updateGear();
 
@@ -245,35 +251,29 @@ public class Robot {
         double v4 = 0; // rb
 
         double sp = .25;
-        ad.odo.update();
 
 
 
         if (Math.abs(c.LStickX) > 0 || Math.abs(c.LStickY) > 0 || Math.abs(c.RStickX) > 0) {
-
-            double heading = -Math.toRadians(ad.odo.getHeading());
-            double y = -c.LStickY;
-            double x = c.LStickX * 1.1;
+            double y = -c.LStickY; // Remember, Y stick value is reversed
+            double x = c.LStickX;
             double rx = c.RStickX;
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-            double feildX = x * Math.cos(heading) - y * Math.sin(heading);
-            double feildY = x * Math.sin(heading) + y * Math.cos(heading);
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            v1 = (rotY + rotX + rx) / denominator;
+             v3 = (rotY - rotX + rx) / denominator;
+             v2 = (rotY - rotX - rx) / denominator;
+             v4 = (rotY + rotX - rx) / denominator;
 
 
-            v1 = feildY + feildX + rx; //lf
-            v2 =  feildY - feildX - rx; //rf
-            v3 =  feildY - feildX + rx;  //lb
-            v4 =  feildY + feildX - rx;  //rb
-
-            double maxPow = Math.max(1.0, v1);
-            maxPow = Math.max(maxPow, v2);
-            maxPow = Math.max(maxPow, v3);
-            maxPow = Math.max(maxPow, v4);
-
-            v1 /= maxPow;
-            v2 /= maxPow;
-            v3 /= maxPow;
-            v4 /= maxPow;
 
             Robot.drive(v2,v4,v3,v1);
 
@@ -334,7 +334,7 @@ public class Robot {
     }
 
     public static void rcIntake(){
-        //intake.resetHSlide();
+        intake.resetHSlide();
         if(c.RBumper2 ){
             intake.runWheels(true);
         } else if(c.LBumper2){
@@ -361,11 +361,13 @@ public class Robot {
 
 
         if(c.LStickY2 > .05 && intake.getCurrentHPos() < intake.hSlideMax){
-            intake.runSlide(c.LStickY2);
+            intake.hslideToPow(c.LStickY2);
         } else if (c.LStickY2 < -.05) {
-            intake.runSlide(c.LStickY2);
+            intake.hslideToPow(c.LStickY2);
         }else {
-            intake.stopSlide();
+            if(intake.hslide.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+                intake.stopSlide();
+            }
         }
 
     }
@@ -410,6 +412,7 @@ public class Robot {
             } else if(c.dpadDown2){
                 outtake.vslideToPow(-outtake.slidePower);
             } else {
+
                 outtake.stopVSlide();
             }
         }
@@ -434,13 +437,13 @@ public class Robot {
     }
 
     public static void rcAscension(){
-        if(c.bigButton && !prevC.bigButton){
-            if(ascension.up){
-                ascension.down();
-            } else {
-                ascension.up();
-            }
-        }
+//        if(c.bigButton && !prevC.bigButton){
+//            if(ascension.up){
+//                ascension.down();
+//            } else {
+//                ascension.up();
+//            }
+//        }
 
 
     }

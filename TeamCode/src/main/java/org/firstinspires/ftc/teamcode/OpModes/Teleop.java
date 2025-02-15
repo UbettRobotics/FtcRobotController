@@ -16,7 +16,7 @@ import java.sql.Driver;
 
 @TeleOp(name = "Telop")
 public class Teleop extends LinearOpMode {
-
+    public int state;
     OpenCvCamera webcam;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -46,7 +46,7 @@ public class Teleop extends LinearOpMode {
 //        });
 
         initAll(this, true);
-        int state = 0;
+        state = 0;
 
         waitForStart();
         intake.tsTarget = intake.tsMiddle;
@@ -72,12 +72,14 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("intake slide pos", intake.getCurrentHPos());
             telemetry.addData("Intake Servo: ", intake.transferServo.getConnectionInfo());
             telemetry.addData("state: ", state);
-          /*telemetry.addData("color r", intake.cs.red());
-           telemetry.addData("color g", intake.cs.green());
+
+            telemetry.addData("color r", intake.cs.red());
+            telemetry.addData("color g", intake.cs.green());
             telemetry.addData("color b", intake.cs.blue());
+            telemetry.addData("ds distance", intake.getDSDistance());
             telemetry.addData("avg", (intake.cs.red() + intake.cs.green() + intake.cs.blue())/3.0);
 
-           */
+
             telemetry.update();
 
 

@@ -28,23 +28,23 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         goAndIntakeAndTransfer(2);
 
-        goAndScore(true, false, true);
+        goAndScore(true, true, true);
         goAndIntakeAndTransfer(3);
 
 
-        goAndScore(true, false, true);
+        goAndScore(true, true, true);
 
         goAndIntakeAndTransfer(1);
 
 
-        goAndScore(true, false, false);
+        goAndScore(true, true, false);
 
         sleep(3000);
     }
     //Method Drives Robot to Bucket and Dumps Sample
     public void goAndScore(boolean high, boolean goToPos, boolean extendHSlide){
         //Going to Bucket with Sample
-        if(high) {
+        if(high){
             outtake.vslideToPos(outtake.highBucketSlidePos, outtake.slidePower);
         } else {
             outtake.vslideToPos(outtake.lowBucketSlidePos, outtake.slidePower);
@@ -55,7 +55,7 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         if(goToPos) {
             ad.goToHeading(0);
-            ad.goToPointConstantHeading(14.5, 12.5);
+            ad.goToPointConstantHeading(13, 12);
         }
         ad.goToHeading(315);
         intake.stopWheels();
@@ -82,7 +82,7 @@ public class LeftThreeWTurning extends LinearOpMode {
         double angle = 0;
         switch (sample) {
             case 1:
-                angle = 22; // 20
+                angle = 20; // 20
                 break;
             case 2:
                 angle = 1; //5
@@ -111,17 +111,18 @@ public class LeftThreeWTurning extends LinearOpMode {
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
 
-        if(sample == 2) sleep(250);
+        if(sample == 2) sleep(350);
         intake.hslideToPos(intake.slideOut+100, 1);
 
 
 
         //Turn Active Intake On
-        sleep(750);
-        if(sample == 1 || sample == 3){
-            sleep(250);
-        }
+        //while(!intake.hasSample()){}
 
+        sleep(400);
+        if(sample == 1 || sample == 3){
+            sleep(150);
+        }
 
         //Move Transfer Servo to Middle
         intake.tsTarget = intake.tsMiddle;

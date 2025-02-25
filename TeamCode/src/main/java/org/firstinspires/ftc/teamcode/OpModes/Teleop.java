@@ -55,12 +55,12 @@ public class Teleop extends LinearOpMode {
         while(opModeIsActive()){
             c.update();
             state = da.update_auto_state(prevC, c, state);
-
+            state = da.auto_intake_and_transfer(state, c);
             power = rcDriving();
 
-            rcIntake();
+            rcIntake(state);
             rcOuttake();
-            rcAscension();
+            //rcAscension();
 
 
 
@@ -70,14 +70,15 @@ public class Teleop extends LinearOpMode {
 
 
             telemetry.addData("intake slide pos", intake.getCurrentHPos());
-            telemetry.addData("Intake Servo: ", intake.transferServo.getConnectionInfo());
+//            telemetry.addData("Intake Servo: ", intake.transferServo.getConnectionInfo());
             telemetry.addData("state: ", state);
+            telemetry.addData("pady y 2", c.padY2);
 
-            telemetry.addData("color r", intake.cs.red());
-            telemetry.addData("color g", intake.cs.green());
-            telemetry.addData("color b", intake.cs.blue());
-            telemetry.addData("ds distance", intake.getDSDistance());
-            telemetry.addData("avg", (intake.cs.red() + intake.cs.green() + intake.cs.blue())/3.0);
+//            telemetry.addData("color r", intake.cs.red());
+//            telemetry.addData("color g", intake.cs.green());
+//            telemetry.addData("color b", intake.cs.blue());
+//            telemetry.addData("ds distance", intake.getDSDistance());
+//            telemetry.addData("avg", (intake.cs.red() + intake.cs.green() + intake.cs.blue())/3.0);
 
 
             telemetry.update();

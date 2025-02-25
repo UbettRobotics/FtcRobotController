@@ -51,7 +51,7 @@ public class CameraTest extends LinearOpMode {
 
             @Override
             public void onError(int errorCode) {
-                webcam.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_RIGHT);
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
             }
             /*
              * This will be called if the camera could not be opened
@@ -61,19 +61,12 @@ public class CameraTest extends LinearOpMode {
 
 
         waitForStart();
-        ad.goToPointConstantHeading(24,110);
-        ad.goToHeading(0);
+        while(opModeIsActive()){
 
-        sleep(1000);
-
-        while(!cam.isCenter()){
-            double power = cam.getPow();
-            Robot.drive(power, -power, power, -power);
         }
 
-        Robot.drive(0, 0, 0, 0);
-        sleep(5000);
-        ad.goToPointConstantHeading(9,ad.getY());
+
+
 
 
 

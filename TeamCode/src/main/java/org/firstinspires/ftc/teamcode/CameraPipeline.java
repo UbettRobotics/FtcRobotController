@@ -55,11 +55,11 @@ public class CameraPipeline extends OpenCvPipeline {
     public static Side side = Side.RIGHT_SIDE;
 
     //HSV color parameters, determine w/ Python live update program
-    private int hueMin = 105; //84
-    private int hueMax = 142; //122
-    private int satMin = 106; //88
+    private int hueMin = 0; //84
+    private int hueMax = 144; //122
+    private int satMin = 100; //88
     private int satMax = 255;
-    private int valMin = 47; //30
+    private int valMin = 163; //30
     private int valMax = 255;
     private ArrayList<Integer> coneAreaArray;
     private ArrayList<Mat> conarr = new ArrayList<Mat>();
@@ -82,115 +82,17 @@ public class CameraPipeline extends OpenCvPipeline {
         Core.inRange(mat, lowHSV, highHSV, mat);
 
         Imgproc.findContours(mat, contours, mat2, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
-
-        power = this.centerRobo(this.findTarget(getContourArea(mat)));
-
-        telemetry.addData("List: ",getContourArea(mat));
-        telemetry.addData("Target X: ", this.findTarget(getContourArea(mat))[0]);
-        telemetry.addData("Target Width: ", this.findTarget(getContourArea(mat))[1]);
-
-        telemetry.addData("Target X center: ", this.findTarget(getContourArea(mat))[1]/2 +this.findTarget(getContourArea(mat))[0]);
-        telemetry.addData("Target X center: ", this.getTargetPos());
-        telemetry.addData("Power: ", this.centerRobo(this.findTarget(getContourArea(mat))));
-
-
-
-
-
-
-
-
-
+        updateList(mat);
 
         telemetry.addData("Contours", conarr.size());
+        telemetry.addData("Is detected: ", isDectedted());
         telemetry.update();
 
-//        telemetry.addData("SIDE ", (fieldColor == 0)?"BLUE":"RED");
-//        telemetry.addData("Park? ", (park == 0)?"No Park":"Do♦ Park");
-//        telemetry.update();
 
         return image;
     }
 
 
-
-    public Side getSide() {return side;}
-    public int getrectX(){return rectX;}
-    public double getTargetPos(){
-        //1.5 in irl
-        double[] list = findTarget(getContourArea(mat));
-
-
-
-
-        //convert pixels to inches
-        double ratio =1.5/list[1];
-
-        //middle 160
-
-        double offset = 5.5 - ((list[0] + list[1]/2 )- 160)*(ratio);
-
-
-
-
-
-
-
-
-        return offset;
-    }
-
-    public double getPow(){
-        return power;
-    }
-
-    public boolean isCenter(){
-        double[] list = findTarget(getContourArea(mat));
-
-        double center = list[0]+(list[1]/2);
-        return (Math.abs(160 - center) <= 10);
-    }
-
-    public double centerRobo(double[] list){
-
-
-        double center = list[0]+(list[1]/2);
-
-
-
-        return  center - 160;
-
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-
-    public double[] findTarget(List<Rect> list){
-        double[] info = {0,1};
-        if(list.size() == 0){return info;}
-
-
-        int pos = list.get(0).x;
-        int index = 0;
-        for(int i = 1; i < list.size(); i++){
-           if( list.get(i).x > pos){
-               index = i;
-               pos = list.get(i).x;
-           }
-        }
-        info[0] = list.get(index).x;
-        info[1] = list.get(index).width;
-        return info;
-    }
 
 
 
@@ -235,12 +137,17 @@ public class CameraPipeline extends OpenCvPipeline {
      */
 
 
+    public boolean isDectedted(){
+        return (conarr.size() > 0);
+    }
 
 
 
 
 
-    private ArrayList<Rect> getContourArea(Mat mat) {
+
+
+    private void updateList(Mat mat) {
 
         hierarchy = new Mat();
         image = mat.clone();
@@ -248,12 +155,11 @@ public class CameraPipeline extends OpenCvPipeline {
 
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        ArrayList<Rect> arr = new ArrayList<Rect>();
         conarr = new ArrayList<Mat>();
 
 
 
-        double minArea = 200;
+        double minArea = 50;
         for (int i = 0; i < contours.size(); i++) {
             Mat contour = contours.get(i);
             double contourArea = Imgproc.contourArea(contour);
@@ -262,63 +168,17 @@ public class CameraPipeline extends OpenCvPipeline {
                 conarr.add(contour);
                 Rect bounding = Imgproc.boundingRect(contour);
 
-                arr.add(bounding);
                 //Draw a rectangle on preview stream
                 Imgproc.rectangle(image, bounding, new Scalar(80,80,80), 4);
             }
         }
 
 
-        //side = getConeArea();
 
-        return arr;
     }
 
 
 
-    private Side getConeArea() {
-        int biggestContour = 0;
-        if (coneAreaArray == null) {
-            return Side.RIGHT_SIDE;
-        }
-        double biggestContourArea = 0;
-        //Finds biggest contour, can be assumed to be object of concern
-        for (int i = 0; i < coneAreaArray.size(); i++) {
-            if(coneAreaArray.get(i) > biggestContourArea) {
-                biggestContourArea = coneAreaArray.get(i);
-                biggestContour = i;
-
-            }
-        }
-        //Change these numbers for size determining
-        Side side = Side.RIGHT_SIDE;
-
-        if(conarr.size() <= 0 || conarr.size() <= biggestContour) {
-            return Side.RIGHT_SIDE;
-        } else {
-            Rect rect = Imgproc.boundingRect(conarr.get(biggestContour));
-            //Draw a rectangle on preview stream
-            Imgproc.rectangle(image, rect, new Scalar(128,128,128), 4);
-            if (rect.x < (mat.cols()/6)) {
-                side = Side.LEFT_SIDE;
-            } else if (rect.x < (2 * mat.cols()/3)) {
-                side = Side.MIDDLE_SIDE;
-            } else {
-                side = Side.RIGHT_SIDE;
-            }
-        }
-
-
-        return side;
-    }
-
-    public void setColor(int isRed) {
-        fieldColor = isRed;
-    }
-    public int getColor() {
-        return fieldColor;
-    }
-    public void Park(int isPark){ park = isPark;}
 
 
 

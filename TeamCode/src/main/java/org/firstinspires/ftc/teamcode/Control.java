@@ -57,7 +57,7 @@ public class Control implements Cloneable{
     public boolean bigButton2;
 
     public float padX;
-    public float padY;
+    public float padY2;
 
 
 
@@ -113,8 +113,7 @@ public class Control implements Cloneable{
         bigButton2 = gm2.touchpad;
 
         padX = gm1.touchpad_finger_1_x;
-        padY = gm1.touchpad_finger_1_y;
-
+        padY2 = gm2.touchpad_finger_1_y;
 
 
 

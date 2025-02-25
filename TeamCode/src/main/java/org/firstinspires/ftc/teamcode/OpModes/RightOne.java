@@ -137,11 +137,5 @@ public class RightOne extends LinearOpMode  {
 
     }
 
-    public static void lineUp(LinearOpMode opMode, CameraPipeline cam){
-        ad.goToPointConstantHeading(24, 112);
-        ad.goToHeading(0);
-        opMode.sleep(1000);
-        ad.goToPointConstantHeading(0 ,ad.getY() - cam.getTargetPos() + 5.5);
 
-    }
 }

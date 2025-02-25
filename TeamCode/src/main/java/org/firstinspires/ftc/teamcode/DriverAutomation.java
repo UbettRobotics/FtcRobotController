@@ -14,9 +14,10 @@ public class DriverAutomation {
 
     static long start_time = System.nanoTime();
 
+
     public static int phase = 0;
 
-    public int auto_intake_and_transfer(int state){
+    public int auto_intake_and_transfer(int state, Control c){
         // states
         //        0 : inactive
         //        1 : extend slide
@@ -30,13 +31,14 @@ public class DriverAutomation {
         //        9 : wait for thing to be intaked
         switch(state){
             case 1:
-                intake.hslideToPos(intake.slideOut/2, 1.0);
-                state = 2;
+                intake.hslideToPos(intake.slideOut/2 + 200 +  (int)(1000 * c.padY2), 1.0);
+                if(Math.abs(intake.getCurrentHPos() - (intake.slideOut/2 + 200 + (int)(1000*c.padY2))) < 100){
+                    state = 2;
+                }
                 break;
             case 2:
-                if(Math.abs(intake.getCurrentHPos() - intake.slideOut/2) < 50){
-                    state = 3;
-                }
+
+                state = 3;
                 break;
             case 3:
                 intake.tsTarget = intake.tsDown;
@@ -46,7 +48,7 @@ public class DriverAutomation {
                 state = 4;
                 break;
             case 4:
-                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 3.0){
+                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 1.5){
                     state = 5;
                 }
                 break;
@@ -110,10 +112,10 @@ public class DriverAutomation {
             //
             //
             //
-            //
+            //e
             switch(phase) {
                 case 0:
-                    this.auto_intake_and_transfer(6);
+                    this.auto_intake_and_transfer(6, c);
                     if (intake.getCurrentHPos() < 100) {
                         phase++;
                     }

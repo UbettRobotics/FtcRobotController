@@ -48,7 +48,7 @@ public class Robot {
 
     public static Intake intake;
     public static Outtake outtake;
-    public static Ascension ascension;
+    //public static Ascension ascension;
 
     public static AutonomousDrive ad;
     public static IMUControl imu;
@@ -90,7 +90,7 @@ public class Robot {
         //camServo = opMode.hardwareMap.get(Servo.class, "camservo");
         intake = new Intake(opMode);
         outtake = new Outtake(opMode);
-        ascension = new Ascension(opMode);
+        //ascension = new Ascension(opMode);
         foundBottom = false;
         huskCam = new HuskeyAiCamera((LinearOpMode)opMode);
     }
@@ -333,13 +333,13 @@ public class Robot {
 
     }
 
-    public static void rcIntake(){
+    public static void rcIntake(int state){
         intake.resetHSlide();
         if(c.RBumper2 ){
             intake.runWheels(true);
         } else if(c.LBumper2){
             intake.runWheels(false);
-        } else {
+        } else if (state != 4 && state != 9) {
             intake.stopWheels();
         }
 

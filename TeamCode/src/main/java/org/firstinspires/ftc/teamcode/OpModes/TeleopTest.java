@@ -1,14 +1,9 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
-import org.firstinspires.ftc.teamcode.Ascension;
-import org.firstinspires.ftc.teamcode.AutonomousDrive;
-import org.firstinspires.ftc.teamcode.IMUControl;
-import org.firstinspires.ftc.teamcode.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
 
 @TeleOp(name = "TelopTest")
@@ -72,13 +67,13 @@ public class TeleopTest extends LinearOpMode {
 
             ad.odo.update();
 
-            //ascension.clawExtenderToPos(c.LStickY2);
-            if(Math.abs(c.RStickY2) > .05){
-                ascension.slidesToPow(c.RStickY2);
-            }
-            else{
-                ascension.slidesToPos(ascension.rightMotor.getCurrentPosition(), 1.0);
-            }
+//            //ascension.clawExtenderToPos(c.LStickY2);
+//            if(Math.abs(c.RStickY2) > .05){
+//                ascension.slidesToPow(c.RStickY2);
+//            }
+//            else{
+//                ascension.slidesToPos(ascension.rightMotor.getCurrentPosition(), 1.0);
+//            }
 //
 //           /* telemetry.addData("left encoder", ascension.leftMotor.getCurrentPosition());
 
@@ -86,7 +81,7 @@ public class TeleopTest extends LinearOpMode {
 
 //            telemetry.addData("claw extender pos", ascension.clawExtenderR.getPosition());
             telemetry.addData("Gamepad pos X: ", c.padX);
-            telemetry.addData("Gamepad pos Y: ", c.padY);
+            telemetry.addData("Gamepad pos Y: ", c.padY2);
             telemetry.addData("Robot head: ", ad.odo.getHeading());
             telemetry.update();
 

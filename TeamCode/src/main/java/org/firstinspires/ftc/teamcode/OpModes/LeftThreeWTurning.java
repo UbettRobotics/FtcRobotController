@@ -8,6 +8,12 @@ import static org.firstinspires.ftc.teamcode.Robot.outtake;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.CameraPipeline;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
 @Autonomous (name="Left Three W Turning", preselectTeleOp="Telop")
 public class LeftThreeWTurning extends LinearOpMode {
 
@@ -15,6 +21,38 @@ public class LeftThreeWTurning extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initAll(this, true);
+
+        CameraPipeline cam;
+
+        int cameraMonitorViewId;
+
+        OpenCvCamera webcam;
+
+
+        cam = new CameraPipeline(telemetry);
+
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+
+        webcam.setPipeline(cam);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+
+
+            @Override
+            public void onError(int errorCode) {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+            /*
+             * This will be called if the camera could not be opened
+             */
+
+        });
+
 
         //Prep Robot for Auto
         outtake.stopVSlide();
@@ -24,25 +62,25 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         waitForStart();
 
-        goAndScore(true, true, true);
+        goAndScore(true, true, true, false);
 
-        goAndIntakeAndTransfer(2);
+        goAndIntakeAndTransfer(2,cam );
 
-        goAndScore(true, true, true);
-        goAndIntakeAndTransfer(3);
-
-
-        goAndScore(true, true, true);
-
-        goAndIntakeAndTransfer(1);
+        goAndScore(true, true, true, false);
+        goAndIntakeAndTransfer(3,cam);
 
 
-        goAndScore(true, true, false);
+        goAndScore(true, true, true, false);
+
+        goAndIntakeAndTransfer(1,cam);
+
+
+        goAndScore(true, true, false, true);
 
         sleep(3000);
     }
     //Method Drives Robot to Bucket and Dumps Sample
-    public void goAndScore(boolean high, boolean goToPos, boolean extendHSlide){
+    public void goAndScore(boolean high, boolean goToPos, boolean extendHSlide, boolean end){
         //Going to Bucket with Sample
         if(high){
             outtake.vslideToPos(outtake.highBucketSlidePos, outtake.slidePower);
@@ -55,7 +93,7 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         if(goToPos) {
             ad.goToHeading(0);
-            ad.goToPointConstantHeading(13, 12);
+            ad.goToPointConstantHeading(14, 13);
         }
         ad.goToHeading(315);
         intake.stopWheels();
@@ -72,12 +110,15 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         outtake.setBucketPos(outtake.bucketRegPos);
         sleep(400);
+        if(end){
+            ad.forward(4);
+        }
         outtake.vslideToPos(outtake.bottomSlidePos, outtake.slidePower);
 
     }
 
     //Robot Collects Inputted Sample (Left = 1, Middle = 2, Right = 3)
-    public void goAndIntakeAndTransfer(int sample){
+    public void goAndIntakeAndTransfer(int sample, CameraPipeline cam){
         //
         double angle = 0;
         switch (sample) {
@@ -85,7 +126,7 @@ public class LeftThreeWTurning extends LinearOpMode {
                 angle = 20; // 20
                 break;
             case 2:
-                angle = 1; //5
+                angle = 3; //5
                 break;
             case 3:
                 angle = 344;//346
@@ -108,10 +149,13 @@ public class LeftThreeWTurning extends LinearOpMode {
         if(sample == 3){
             sleep(100);
         }
+
+
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
 
         if(sample == 2) sleep(350);
+        else { sleep(200); }
         intake.hslideToPos(intake.slideOut+100, 1);
 
 
@@ -119,10 +163,24 @@ public class LeftThreeWTurning extends LinearOpMode {
         //Turn Active Intake On
         //while(!intake.hasSample()){}
 
-        sleep(400);
-        if(sample == 1 || sample == 3){
+       /* sleep(400);
+        if(sample == 1){
             sleep(150);
         }
+        if(sample == 3){
+            sleep(250);
+        }
+
+        */
+
+
+
+        while(!cam.isDectedted() && opModeIsActive()){
+            sleep(1);
+
+        }
+
+
 
         //Move Transfer Servo to Middle
         intake.tsTarget = intake.tsMiddle;
@@ -130,12 +188,15 @@ public class LeftThreeWTurning extends LinearOpMode {
         intake.stopWheels();
 
         intake.hslideToPos(intake.slideForceIn, 1);
-        sleep(1000);
+       sleep(1000);
 
         //Transfer Sample
         intake.runWheels(true);
 
-        sleep(800);
+        while(!cam.isDectedted()){
+            intake.stopWheels();
+            sleep(10);
+        }
 
 
         //intake.stopWheels();
@@ -144,4 +205,6 @@ public class LeftThreeWTurning extends LinearOpMode {
 
 
     }
+
+
 }

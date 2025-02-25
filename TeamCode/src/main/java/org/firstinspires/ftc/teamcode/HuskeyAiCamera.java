@@ -25,7 +25,7 @@ public class HuskeyAiCamera {
 
     public HuskeyAiCamera(LinearOpMode opMode){
         this.opMode = opMode;
-        huskyCam = opMode.hardwareMap.get(HuskyLens.class, "huskeyLens");
+        huskyCam = opMode.hardwareMap.get(HuskyLens.class, "huskeyCam");
 
         if (!huskyCam.knock()) {
             opMode.telemetry.addData(">>", "Problem communicating with " + huskyCam.getDeviceName());

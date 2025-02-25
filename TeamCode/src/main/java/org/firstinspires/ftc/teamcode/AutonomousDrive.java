@@ -3,8 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutonomousDrive {
 
@@ -305,122 +307,96 @@ public class AutonomousDrive {
         return  !isMoving() && Math.abs(distanceToGo) < 1.75;
     }
 
-    public void goToPoint(double targetX, double targetY, double degrees) {
-        // try switching from atan2 to atan
-        //Get X and Y Distance and Total Distance
-        odo.update();
-
-        double rotation = getHeading();
-        double targetXDist = targetX - getX();
-        double targetYDist= targetY - getY();
-        double newY = -targetYDist * Math.cos(rotation) - -targetXDist * Math.sin(rotation); //Angle Difference Identity
-        double newX = targetXDist * Math.cos(rotation) - -targetYDist * Math.sin(rotation); //Trigonometry
+    public void goToPoint(double targetX, double targetY, double degrees, LinearOpMode opMode) {
+        double targetYDistance = (targetY - getY()) * 1.1;
+        double targetXDistance = targetX - getX();
+        double totalDistance = Math.hypot(targetYDistance, targetXDistance);
 
         //Get Heading
-        degrees = (degrees >= 0) ? degrees % 360: (360 + (degrees % -360));
-        double currentHeading = getHeading();
-        double totalangleTogo = degrees - currentHeading;
-        double startheading = getHeading();
-        double angleTogo = totalangleTogo;
-        currentHeading =  getHeading();
-        angleTogo = degrees - currentHeading;
+        double botHeading = getHeading();
+        if(degrees < 0) {
+            degrees = (360 + (degrees % -360));
+        }else{
+            degrees = degrees % 360;
+        }
+
+        double angleTogo = degrees - botHeading;
+
         if(Math.abs(angleTogo) > 180){
-            if(currentHeading < 180){
-                angleTogo = ((180-currentHeading) + degrees);
+            if(botHeading < 180){
+                angleTogo = -((botHeading) + (360 - degrees));
             }else{
-                angleTogo = (degrees + (360 - currentHeading));
+                angleTogo = (degrees + (360 - botHeading));
             }
         }
-        double angleslope = angleTogo /Math.hypot(targetYDist,targetXDist);
-        double powerTurn = powerCurvingTurn(angleTogo);
-
-        double newdegree;
 
 
+        double power;
 
+        double v1; //lf // was cos
+        double v2; //rf // was sin
+        double v3; //lb // was sin
+        double v4; //rb // was
 
-        double totalDistance = Math.hypot(newX, newY);
-        double robotAngle = Math.atan2(targetYDist, targetXDist) + Math.PI/4 + Math.toRadians(angleTogo);
-        double rightX = powerCurvingTurn(angleTogo);
-        double power = powerCurvingOmni(totalDistance);
-
-        double v1 = power * Math.cos(robotAngle) + rightX; //lf
-        double v2 = power * Math.sin(robotAngle) - rightX; //rf
-        double v3 = power * Math.sin(robotAngle) + rightX; //lb
-        double v4 = power * Math.cos(robotAngle) - rightX; //rb
-
-        Robot.drive(v2,v4,v3,v1);
-
-        double angleToGo2 = angleTogo;
-        while ((Math.abs(angleToGo2) > 5 || Math.abs(targetYDist) > this.errorTolerance + .025 || Math.abs(targetXDist) > this.errorTolerance + .025 ) && opMode.opModeIsActive()) {
+        while((Math.abs(targetYDistance) > this.errorTolerance + .75 || Math.abs(targetXDistance) > this.errorTolerance + .75) && opMode.opModeIsActive()){
             odo.update();
+            if(isStuck(totalDistance))return;
 
-            rotation = getHeading();
-            targetXDist = targetX - getX();
-            targetYDist= targetY - getY();
-            newY = -targetYDist * Math.cos(rotation) - -targetXDist * Math.sin(rotation); //Angle Difference Identity
-            newX = targetXDist * Math.cos(rotation) - -targetYDist * Math.sin(rotation); //Trigonometry
-
-            //Get Heading
-            angleToGo2 = degrees - currentHeading;
-            if (Math.abs(angleToGo2) > 180) {
-                if (currentHeading < 180) {
-                    angleToGo2 = ((180 - currentHeading) + degrees);
-                } else {
-                    angleToGo2 = (degrees + (360 - currentHeading));
-                }
-            }
+            targetYDistance = (targetY - odo.getPosition().getY(DistanceUnit.INCH));
+            targetXDistance = (targetX - odo.getPosition().getX(DistanceUnit.INCH));
+            totalDistance = Math.hypot(targetYDistance, targetXDistance);
 
 
-            newdegree = startheading + (angleslope * totalDistance);
-            angleTogo = newdegree - currentHeading;
 
-            if (Math.abs(angleTogo) > 180) {
-                if (currentHeading < 180) {
-                    angleTogo = ((180 - currentHeading) + newdegree);
-                } else {
-                    angleTogo = (newdegree + (360 - currentHeading));
-                }
-            }
-
-            totalDistance = Math.hypot(newX, newY);
-            robotAngle = Math.atan2(targetYDist, targetXDist) + Math.PI/4 + Math.toRadians(angleTogo);
-            rightX = powerCurvingTurn(angleTogo);
             power = powerCurvingOmni(totalDistance);
+            double botheadingRad = Math.toRadians(botHeading);
 
-            v1 = power * Math.cos(robotAngle) + rightX; //lf
-            v2 = power * Math.sin(robotAngle) - rightX; //rf
-            v3 = power * Math.sin(robotAngle) + rightX; //lb
-            v4 = power * Math.cos(robotAngle) - rightX; //rb
-
-            Robot.drive(v2,v4,v3,v1);
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = targetYDistance * Math.cos(-botheadingRad) - targetYDistance * Math.sin(-botheadingRad);
+            double rotY = targetYDistance * Math.sin(-botheadingRad) + targetYDistance * Math.cos(-botheadingRad);
 
 
+            //get target Heading
 
-            opMode.telemetry.addData("get x", getX());
-            opMode.telemetry.addData("get y", getY());
 
-            opMode.telemetry.addData("LF", v1);
-            opMode.telemetry.addData("RF", v2);
-            opMode.telemetry.addData("LB", v3);
-            opMode.telemetry.addData("RB", v4);
-            opMode.telemetry.update();
+            angleTogo = degrees - botHeading;
+
+            if(Math.abs(angleTogo) > 180){
+                if(botHeading < 180){
+                    angleTogo = -((botHeading) + (360 - degrees));
+                }else{
+                    angleTogo = (degrees + (360 - botHeading));
+                }
+            }
+            double rx =
+
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            v1 = (rotY + rotX + rx) / denominator;
+            v3 = (rotY - rotX + rx) / denominator;
+            v2 = (rotY - rotX - rx) / denominator;
+            v4 = (rotY + rotX - rx) / denominator;
+
+
+            double max = 1;
+            max = Math.max(v1, max);
+            max = Math.max(v2, max);
+            max = Math.max(v3, max);
+            max = Math.max(v4, max);
+
+            v1 /= max;
+            v2 /= max;
+            v3 /= max;
+            v4 /= max;
         }
+            Robot.drive(0, 0, 0, 0);
 
+            opMode.sleep(100);
 
-
-
-
-
-
-
-
-
-
-
-        Robot.drive(0,0,0,0);
-
-        opMode.sleep(350);
     }
 
     public void goToPointConstantHeading(double targetX, double targetY){

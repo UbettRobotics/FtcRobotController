@@ -20,8 +20,8 @@ public class Outtake {
 
     //Vars for Slide Positions
     public int bottomSlidePos = 0;
-    public int highBucketSlidePos = 4000; //temp value
-    public int lowBucketSlidePos = 2250; //temp value
+    public int highBucketSlidePos = 4200;
+    public int lowBucketSlidePos = 2250;
     public int touchBarSlidePos = 400;
     public final int V_SLIDE_MAX = 4375;
     public int targetPos = bottomSlidePos;
@@ -31,7 +31,7 @@ public class Outtake {
 
     //Vars for Bucket Dumping Positions
     public double bucketOutPos = 0.25;
-    public double bucketRegPos = 0.625;
+    public double bucketRegPos = 0.63;
 
     public double targetBucketPos = bucketRegPos;
 

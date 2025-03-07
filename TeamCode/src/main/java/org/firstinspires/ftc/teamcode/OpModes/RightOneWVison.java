@@ -42,24 +42,12 @@ public class RightOneWVison extends LinearOpMode  {
 ////////Program start////////////////////////////////////////////////////////////////////////
         ad.goToHeading(180);
         outtake.vslideToPos(outtake.lowBucketSlidePos,1);
+        sleep(500);
         ad.goToPointConstantHeading(40,72);
         ad.goToHeading(180);
         clip(this);
-        ad.goToPointConstantHeading(24,120);
-        ad.goToHeading(0);
-        intake.hslideToPos(intake.slideOut,1);
-        intake.runWheels(true);
-        intake.tsTarget = intake.tsDown;
-        intake.setTransferServo();
-        sleep(400);
-        intake.stopWheels();
-        intake.tsTarget =intake.tsUp;
-        intake.setTransferServo();
-        sleep(100);
-        dumpBucket(this);
-        ad.goToHeading(0);
-        lineup(this);
         sleep(1000);
+
 
 
 
@@ -68,7 +56,7 @@ public class RightOneWVison extends LinearOpMode  {
 
     public static void clip(LinearOpMode opMode){
         outtake.killClaw();
-        outtake.vslideToPos(outtake.bottomSlidePos,1);
+        outtake.vslideToPos(outtake.bottomSlidePos + 50,1);
         opMode.sleep(500);
 
     }

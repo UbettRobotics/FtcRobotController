@@ -17,7 +17,11 @@ import java.sql.Driver;
 @TeleOp(name = "Telop")
 public class Teleop extends LinearOpMode {
     public int state;
-    OpenCvCamera webcam;
+
+    public CameraPipeline cam;
+
+
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -46,6 +50,37 @@ public class Teleop extends LinearOpMode {
 //        });
 
         initAll(this, true);
+
+
+        int cameraMonitorViewId;
+
+        OpenCvCamera webcam;
+
+
+        cam = new CameraPipeline(telemetry);
+
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+
+        webcam.setPipeline(cam);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+
+
+            @Override
+            public void onError(int errorCode) {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+            /*
+             * This will be called if the camera could not be opened
+             */
+
+        });
+
         state = 0;
 
         waitForStart();
@@ -55,7 +90,7 @@ public class Teleop extends LinearOpMode {
         while(opModeIsActive()){
             c.update();
             state = da.update_auto_state(prevC, c, state);
-            state = da.auto_intake_and_transfer(state, c);
+            state = da.auto_intake_and_transfer(state, c, cam);
             power = rcDriving();
 
             rcIntake(state);
@@ -73,6 +108,7 @@ public class Teleop extends LinearOpMode {
 //            telemetry.addData("Intake Servo: ", intake.transferServo.getConnectionInfo());
             telemetry.addData("state: ", state);
             telemetry.addData("pady y 2", c.padY2);
+            telemetry.addData("detect sample", cam.isDectedted());
 
 //            telemetry.addData("color r", intake.cs.red());
 //            telemetry.addData("color g", intake.cs.green());

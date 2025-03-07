@@ -15,6 +15,9 @@ public class ExampleAuto extends LinearOpMode {
         outtake.setBucketPos(outtake.bucketRegPos);
         intake.tsTarget = intake.tsMiddle;
         intake.setTransferServo();
+        telemetry.addData("startx", ad.getX());
+        telemetry.addData("starty", ad.getY());
+        telemetry.update();
 
         waitForStart();
         telemetry.addData("startx", ad.getX());
@@ -22,13 +25,9 @@ public class ExampleAuto extends LinearOpMode {
         telemetry.update();
         sleep(200);
         ad.goToHeading(0);
-        ad.goToPointConstantHeading(60,24);
+        ad.goToPoint(48,24,90,this);
         sleep(1000);
-        ad.goToHeading(270);
-        ad.goToPointConstantHeading(8.6,36);
-        ad.goToHeading(0);
-
-
+        ad.goToPoint(8.8,36,0,this);
         sleep(3000);
     }
 }

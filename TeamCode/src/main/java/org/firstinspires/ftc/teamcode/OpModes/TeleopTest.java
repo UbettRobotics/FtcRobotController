@@ -67,6 +67,7 @@ public class TeleopTest extends LinearOpMode {
 
             ad.odo.update();
 
+
 //            //ascension.clawExtenderToPos(c.LStickY2);
 //            if(Math.abs(c.RStickY2) > .05){
 //                ascension.slidesToPow(c.RStickY2);

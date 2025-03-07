@@ -20,9 +20,9 @@ public class Outtake {
 
     //Vars for Slide Positions
     public int bottomSlidePos = 0;
-    public int highBucketSlidePos = 4200;
+    public int highBucketSlidePos = 4300;
     public int lowBucketSlidePos = 2250;
-    public int touchBarSlidePos = 400;
+    public int touchBarSlidePos = 300;
     public final int V_SLIDE_MAX = 4375;
     public int targetPos = bottomSlidePos;
 
@@ -30,8 +30,8 @@ public class Outtake {
     public double slidePower = 1; //temp value
 
     //Vars for Bucket Dumping Positions
-    public double bucketOutPos = 0.25;
-    public double bucketRegPos = 0.63;
+    public double bucketOutPos = 0.22; //0.25
+    public double bucketRegPos = 0.61; //0.63
 
     public double targetBucketPos = bucketRegPos;
 
@@ -68,6 +68,8 @@ public class Outtake {
     public void setBucketPos(double pos){
         bucket.setPosition(pos);
     }
+
+
 
     //Get Vertical Slide Position
     public int getVSlidePos(){

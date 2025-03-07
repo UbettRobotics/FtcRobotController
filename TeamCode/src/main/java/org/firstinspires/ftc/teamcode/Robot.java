@@ -145,7 +145,7 @@ public class Robot {
 
     public static double updateGear(){
 
-        if((c.options && !prevC.options) || (c.options2 && !prevC.options2)){
+        if((c.options && !prevC.options)){
             gearprev = (gearprev == slow) ? fast : slow;
         }
         gear = (intake.getCurrentHPos() > 500 || (outtake.vslide.getTargetPosition() > outtake.lowBucketSlidePos && outtake.getVSlidePos() > outtake.lowBucketSlidePos)) ? slow : gearprev;

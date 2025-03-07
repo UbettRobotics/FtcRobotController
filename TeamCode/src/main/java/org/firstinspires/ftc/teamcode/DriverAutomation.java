@@ -17,7 +17,7 @@ public class DriverAutomation {
 
     public static int phase = 0;
 
-    public int auto_intake_and_transfer(int state, Control c){
+    public int auto_intake_and_transfer(int state, Control c, CameraPipeline cam){
         // states
         //        0 : inactive
         //        1 : extend slide
@@ -48,7 +48,7 @@ public class DriverAutomation {
                 state = 4;
                 break;
             case 4:
-                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 1.5){
+                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 3 || cam.isDectedted()){
                     state = 5;
                 }
                 break;
@@ -88,13 +88,20 @@ public class DriverAutomation {
 
 
     public double getElapsedSeconds(long startTime, long endTime) { // nano seconds
-        return (endTime - startTime) / 1_000_000_000.0;
+        return (endTime - startTime) / 1000000000.0;
     }
 
     public int update_auto_state(Control prevC, Control c, int state){
         if(!prevC.bigButton2 && c.bigButton2){
             if(state == 0){
                 state = 1;
+            } else {
+                state = 0;
+            }
+        }
+        if(!prevC.options2 && c.options2){
+            if(state == 0){
+                state = 3;
             } else {
                 state = 0;
             }
@@ -115,7 +122,7 @@ public class DriverAutomation {
             //e
             switch(phase) {
                 case 0:
-                    this.auto_intake_and_transfer(6, c);
+
                     if (intake.getCurrentHPos() < 100) {
                         phase++;
                     }
@@ -130,52 +137,58 @@ public class DriverAutomation {
                     return new double[] {pows[0],pows[1],pows[2],pows[3]};
                 case 3:
                     pows = this.telegoToPointConstantHeading(opMode, 14.5, 13);
-                    phase += (int)(pows[4]);
-                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
-                case 4:
-                    intake.tsTarget = intake.tsMiddle;
-                    intake.setTransferServo();
-                    outtake.vslideToPos(outtake.highBucketSlidePos,1);
-                    outtake.setBucketPos(outtake.bucketOutPos);
-                    pows = this.telegoToHeading(opMode,315);
-                    phase += 1;
-                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
-                case 5:
-                    pows = this.telegoToHeading(opMode,315);
-                    phase += (int)(pows[4]);
-                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
-                case 6:
-                    intake.tsTarget = intake.tsMiddle;
-                    intake.setTransferServo();
-                    outtake.vslideToPos(outtake.highBucketSlidePos,1);
-                    outtake.setBucketPos(outtake.bucketOutPos);
-                    phase++;
-                    return new double[]{0,0,0,0};
-                case 7:
-                    if(Math.abs(outtake.getVSlidePos() - outtake.highBucketSlidePos ) > 100){
+                    if((int)(pows[4]) == 1){
                         phase++;
-                        start_time = System.nanoTime();
-                    }else{
-                        return new double[]{0,0,0,0};
                     }
-                case 8:
-                    if(getElapsedSeconds(start_time, System.nanoTime()) > 2){
-                        pows = this.telegoToPointConstantHeading(opMode, 60, 24);
-                        phase += 1;
-                        return new double[] {pows[0],pows[1],pows[2],pows[3]};
-                    }else{
-                        return new double[]{0,0,0,0};
-                    }
-                case 9:
-                        pows = this.telegoToPointConstantHeading(opMode, 60, 48);
-                        phase = ((int)(pows[4]) == 1) ? 0:phase;
-                        return new double[] {pows[0],pows[1],pows[2],pows[3]};
+                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
+
+
 
             }
         }else{
-            phase =(c.b1)? 0:phase;
+            phase = 0;
+        }
+
+        if(c.b1) {
+            //Phase
+            //0:Start, retract intake and stop wheels
+            //1: Go back and go into
+            //
+            //
+            //
+            //
+            //
+            //e
+            switch(phase) {
+                case 0:
+
+                    if (intake.getCurrentHPos() < 100) {
+                        phase++;
+                    }
+                    return new double[] {0,0,0,0};
+                case 1:
+                    pows = this.telegoToPointConstantHeading(opMode, 60, 24);
+                    phase += (int)(pows[4]);
+                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
+                case 2:
+                    pows = this.telegoToHeading(opMode,90);
+                    phase += (int)(pows[4]);
+                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
+                case 3:
+                    pows = this.telegoToPointConstantHeading(opMode, 14.5, 13);
+                    if((int)(pows[4]) == 1){
+                        phase++;
+                    }
+                    return new double[] {pows[0],pows[1],pows[2],pows[3]};
+
+
+
+            }
+        }else{
+            phase = 0;
         }
         return new double[4];
+
     }
 
 

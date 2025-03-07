@@ -17,6 +17,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 @Autonomous (name="Left Three W Turning", preselectTeleOp="Telop")
 public class LeftThreeWTurning extends LinearOpMode {
 
+    boolean haveSample = false;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -64,18 +66,37 @@ public class LeftThreeWTurning extends LinearOpMode {
 
         goAndScore(true, true, true, false);
 
-        goAndIntakeAndTransfer(2,cam );
-
-        goAndScore(true, true, true, false);
-        goAndIntakeAndTransfer(3,cam);
-
-
-        goAndScore(true, true, true, false);
-
-        goAndIntakeAndTransfer(1,cam);
+        if(goAndIntakeAndTransfer(2,cam )) {
+            goAndScore(true, true, true, false);
+        } else {
+            intake.hslideToPos(intake.slideOut - 600, .5);
+        }
 
 
-        goAndScore(true, true, false, true);
+        if(goAndIntakeAndTransfer(3,cam)) {
+            goAndScore(true, true, true, false);
+        } else {
+            intake.hslideToPos(intake.slideOut - 600, .5);
+        }
+
+        if(goAndIntakeAndTransfer(1,cam)){
+            goAndScore(true, true, false, true);
+        } else {
+            intake.tsTarget = intake.tsUp;
+            intake.setTransferServo();
+            outtake.vslideToPos(outtake.bottomSlidePos, .75);
+            outtake.setBucketPos(outtake.bucketRegPos);
+
+            sleep(500);
+
+            intake.hslideToPos(intake.slideForceIn, .75);
+
+            sleep(1000);
+            ad.forward(4);
+
+        }
+
+
 
         sleep(3000);
     }
@@ -87,13 +108,14 @@ public class LeftThreeWTurning extends LinearOpMode {
         } else {
             outtake.vslideToPos(outtake.lowBucketSlidePos, outtake.slidePower);
         }
-        if(extendHSlide) {
-            intake.hslideToPos(intake.slideOut - 600, .5);
-        }
+
 
         if(goToPos) {
             ad.goToHeading(0);
-            ad.goToPointConstantHeading(14, 13);
+            ad.goToPointConstantHeading(16, 13.25);
+        }
+        if(extendHSlide) {
+            intake.hslideToPos(intake.slideOut - 700, .5);
         }
         ad.goToHeading(315);
         intake.stopWheels();
@@ -113,12 +135,12 @@ public class LeftThreeWTurning extends LinearOpMode {
         if(end){
             ad.forward(4);
         }
-        outtake.vslideToPos(outtake.bottomSlidePos, outtake.slidePower);
+        outtake.vslideToPos(outtake.bottomSlidePos, .75);
 
     }
 
     //Robot Collects Inputted Sample (Left = 1, Middle = 2, Right = 3)
-    public void goAndIntakeAndTransfer(int sample, CameraPipeline cam){
+    public boolean goAndIntakeAndTransfer(int sample, CameraPipeline cam){
         //
         double angle = 0;
         switch (sample) {
@@ -129,7 +151,7 @@ public class LeftThreeWTurning extends LinearOpMode {
                 angle = 3; //5
                 break;
             case 3:
-                angle = 344;//346
+                angle = 345;
                 break;
         }
         intake.runWheels(true);
@@ -154,7 +176,7 @@ public class LeftThreeWTurning extends LinearOpMode {
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
 
-        if(sample == 2) sleep(350);
+        if(sample == 2) sleep(450);
         else { sleep(200); }
         intake.hslideToPos(intake.slideOut+100, 1);
 
@@ -175,10 +197,16 @@ public class LeftThreeWTurning extends LinearOpMode {
 
 
 
-        while(!cam.isDectedted() && opModeIsActive()){
-            sleep(1);
+        long startTime = System.nanoTime();
 
+        while(!cam.isDectedted() && opModeIsActive()){
+            if(getSeconds(startTime, System.nanoTime()) > 2.5){
+                return false;
+            }
+            sleep(1);
         }
+
+
 
 
 
@@ -188,23 +216,27 @@ public class LeftThreeWTurning extends LinearOpMode {
         intake.stopWheels();
 
         intake.hslideToPos(intake.slideForceIn, 1);
-       sleep(1000);
+       sleep(1100);
 
         //Transfer Sample
         intake.runWheels(true);
 
-        while(!cam.isDectedted()){
-            intake.stopWheels();
-            sleep(10);
-        }
+        sleep(500);
+
+
 
 
         //intake.stopWheels();
         intake.hslideToPow(0);
 
+        sleep(250);
 
+        return true;
 
     }
 
+    public static double getSeconds(long startTime, long endTime){
+        return (endTime - startTime) / 1000000000.0;
+    }
 
 }

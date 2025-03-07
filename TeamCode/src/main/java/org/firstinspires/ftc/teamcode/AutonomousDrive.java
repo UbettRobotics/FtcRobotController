@@ -307,6 +307,13 @@ public class AutonomousDrive {
         return  !isMoving() && Math.abs(distanceToGo) < 1.75;
     }
 
+    public static double getNewDegree(double targetDegree, double totalheading, double totalDist, double dist){
+        double newdegree = 0;
+        double slope = totalheading/totalDist;
+        newdegree = targetDegree - (totalheading -  (dist * slope));
+        return newdegree;
+    }
+
     public void goToPoint(double targetX, double targetY, double degrees, LinearOpMode opMode) {
         double targetYDistance = (targetY - getY()) * 1.1;
         double targetXDistance = targetX - getX();
@@ -322,6 +329,8 @@ public class AutonomousDrive {
 
         double angleTogo = degrees - botHeading;
 
+
+
         if(Math.abs(angleTogo) > 180){
             if(botHeading < 180){
                 angleTogo = -((botHeading) + (360 - degrees));
@@ -330,45 +339,75 @@ public class AutonomousDrive {
             }
         }
 
+        double totalheadingangle = angleTogo;
+        double totaldist = totalDistance;
+
 
         double power;
+        double slope = 90;
+        double min = .25;
+
+
+
 
         double v1; //lf // was cos
         double v2; //rf // was sin
         double v3; //lb // was sin
         double v4; //rb // was
 
-        while((Math.abs(targetYDistance) > this.errorTolerance + .75 || Math.abs(targetXDistance) > this.errorTolerance + .75) && opMode.opModeIsActive()){
+        double newDegree = getNewDegree(degrees,totalheadingangle, totaldist,totalDistance);
+        double newangleToGo= botHeading - newDegree;
+
+        double rx;
+
+        while((Math.abs(angleTogo) > 0.5 ||Math.abs(targetYDistance) > this.errorTolerance + .75 || Math.abs(targetXDistance) > this.errorTolerance + .75) && opMode.opModeIsActive()){
             odo.update();
-            if(isStuck(totalDistance))return;
+
 
             targetYDistance = (targetY - odo.getPosition().getY(DistanceUnit.INCH));
             targetXDistance = (targetX - odo.getPosition().getX(DistanceUnit.INCH));
             totalDistance = Math.hypot(targetYDistance, targetXDistance);
+            botHeading = getHeading();
+
+
 
 
 
             power = powerCurvingOmni(totalDistance);
-            double botheadingRad = Math.toRadians(botHeading);
+            double botheadingRad = -Math.toRadians(odo.getHeading());
 
             // Rotate the movement direction counter to the bot's rotation
-            double rotX = targetYDistance * Math.cos(-botheadingRad) - targetYDistance * Math.sin(-botheadingRad);
-            double rotY = targetYDistance * Math.sin(-botheadingRad) + targetYDistance * Math.cos(-botheadingRad);
+            double rotX = targetYDistance * Math.cos(-botheadingRad) - targetXDistance * Math.sin(-botheadingRad);
+            double rotY = targetYDistance * Math.sin(-botheadingRad) + targetXDistance * Math.cos(-botheadingRad);
 
 
             //get target Heading
 
-
-            angleTogo = degrees - botHeading;
+            newDegree = getNewDegree(degrees,totalheadingangle,  totaldist,totalDistance);
 
             if(Math.abs(angleTogo) > 180){
                 if(botHeading < 180){
                     angleTogo = -((botHeading) + (360 - degrees));
                 }else{
-                    angleTogo = (degrees + (360 - botHeading));
+                    angleTogo = (degrees + (360 - degrees));
                 }
             }
-            double rx =
+
+            angleTogo = degrees - botHeading;
+            if(Math.abs(newangleToGo) > 180){
+                if(botHeading < 180){
+                    newangleToGo = -((botHeading) + (360 - newDegree));
+                }else{
+                    newangleToGo = (newDegree + (360 - newDegree));
+                }
+            }
+
+            if(newangleToGo > 0) {
+                 rx =  (newangleToGo / slope < min) ? min : newangleToGo / slope;
+            }else{
+                 rx = (newangleToGo / slope > -min) ? -min : newangleToGo / slope;
+            }
+
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 
@@ -382,7 +421,7 @@ public class AutonomousDrive {
             v4 = (rotY + rotX - rx) / denominator;
 
 
-            double max = 1;
+         /*   double max = 1;
             max = Math.max(v1, max);
             max = Math.max(v2, max);
             max = Math.max(v3, max);
@@ -392,7 +431,17 @@ public class AutonomousDrive {
             v2 /= max;
             v3 /= max;
             v4 /= max;
+
+          */
+
+            opMode.telemetry.addData("X: ", getX());
+            opMode.telemetry.addData("Y: ", getY());
+            opMode.telemetry.addData("heading: ", getHeading());
+            opMode.telemetry.addData("Target degree: ", newangleToGo);
+            opMode.telemetry.update();
+            Robot.drive(v2,v4,v1,v3);
         }
+
             Robot.drive(0, 0, 0, 0);
 
             opMode.sleep(100);

@@ -1,18 +1,27 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorHuskyLens;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.TestOpModes.MotorTest;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -23,16 +32,16 @@ import java.sql.Driver;
 public class Robot {
 
 
-    public static final double slow = .65;
-    public static final double fast = 1;
+    public static double slow = 0.67;
+    public static double fast = 1;
 
-    public static DcMotor rf;
-    public static DcMotor rb;
-    public static DcMotor lb;
-    public static DcMotor lf;
+    public static DcMotorEx rf;
+    public static DcMotorEx rb;
+    public static DcMotorEx lb;
+    public static DcMotorEx lf;
 
+    public static DcMotorControllerEx dcMotorControllerEx;
 
-    public static ColorSensor cs1;
 
     public static Servo camServo;
 
@@ -56,17 +65,26 @@ public class Robot {
 
     public static DriverAutomation da;
 
+    public static DcMotor[] motors = new DcMotor[4];
 
     public static boolean foundBottom = false;
 
 
 
-    public static void initDrive(OpMode opmode) {
-        rf = opmode.hardwareMap.get(DcMotor.class, "rf");
-        rb = opmode.hardwareMap.get(DcMotor.class, "rb");
-        lb = opmode.hardwareMap.get(DcMotor.class, "lb");
-        lf = opmode.hardwareMap.get(DcMotor.class, "lf");
 
+    public static void initDrive(OpMode opmode) {
+        rf = opmode.hardwareMap.get(DcMotorEx.class, "rf");
+        rb = opmode.hardwareMap.get(DcMotorEx.class, "rb");
+        lb = opmode.hardwareMap.get(DcMotorEx.class, "lb");
+        lf = opmode.hardwareMap.get(DcMotorEx.class, "lf");
+
+
+        dcMotorControllerEx = (DcMotorControllerEx) (rf.getController());
+
+        motors[0] = rf;
+        motors[1] = rb;
+        motors[2] = lb;
+        motors[3] = lf;
 
 
 
@@ -74,7 +92,10 @@ public class Robot {
         //Encoders go to those ports
 
 
-        DcMotor[] motors = {rf, rb, lb, lf};
+        for(int i = 0; i < 4;i++){
+            dcMotorControllerEx.setMotorCurrentAlert(motors[i].getPortNumber(), 5, CurrentUnit.AMPS);
+        }
+
         for (int i = 0; i < 4; i++) {
             motors[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             motors[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -100,6 +121,7 @@ public class Robot {
         initAll(opMode, true);
     }
     public static void initAll(OpMode opMode, boolean left){
+
 
         initDrive(opMode);
         initAccessories(opMode);
@@ -133,10 +155,10 @@ public class Robot {
 
     public static void drive(double rfPower, double rbPower, double lbPower, double lfPower) {
 
-        rf.setPower(rfPower * gear);
-        rb.setPower(rbPower * gear);
-        lb.setPower(lbPower * gear);
-        lf.setPower(lfPower * gear);
+        rf.setPower(rfPower);
+        rb.setPower(rbPower);
+        lb.setPower(lbPower);
+        lf.setPower(lfPower);
 
 
     }
@@ -164,7 +186,7 @@ public class Robot {
         double v3 = 0; // lb
         double v4 = 0; // rb
 
-        double sp = .25;
+        double sp = .65;
 
 
 
@@ -241,26 +263,26 @@ public class Robot {
 
     }
 
-    public static double[] rcDrivingFC(double botHeading){
-
-        updateGear();
+    public static double[] rcDrivingFC(LinearOpMode opMode, double num){
+        double sp = 0.5;
 
         double v1 = 0; // lf
         double v2 = 0; // rf
         double v3 = 0; // lb
         double v4 = 0; // rb
 
-        double sp = .25;
 
 
 
         if (Math.abs(c.LStickX) > 0 || Math.abs(c.LStickY) > 0 || Math.abs(c.RStickX) > 0) {
+
+            double botHeading = -Math.toRadians(num);
             double y = -c.LStickY; // Remember, Y stick value is reversed
             double x = c.LStickX;
             double rx = c.RStickX;
             // Rotate the movement direction counter to the bot's rotation
-            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 
@@ -269,13 +291,15 @@ public class Robot {
             // but only if at least one is out of the range [-1, 1]
             double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
             v1 = (rotY + rotX + rx) / denominator;
-             v3 = (rotY - rotX + rx) / denominator;
-             v2 = (rotY - rotX - rx) / denominator;
-             v4 = (rotY + rotX - rx) / denominator;
+            v3 = (rotY - rotX + rx) / denominator;
+            v2 = (rotY - rotX - rx) / denominator;
+            v4 = (rotY + rotX - rx) / denominator;
 
 
 
-            Robot.drive(v2,v4,v3,v1);
+
+            Robot.drive(v2, v4, v3, v1);
+
 
         }else if (c.LTrigger1 > .25) {
             v1 = -sp;
@@ -353,7 +377,7 @@ public class Robot {
         if(c.RStickY2 < -.5){
             intake.tsTarget = intake.tsDown;
         }else if(Math.abs(c.RStickX2) > .5 || c.RStickY2 > .5){
-            intake.tsTarget = intake.tsMiddle;
+            intake.tsTarget = intake.tsUp;
         }
         intake.setTransferServo();
 

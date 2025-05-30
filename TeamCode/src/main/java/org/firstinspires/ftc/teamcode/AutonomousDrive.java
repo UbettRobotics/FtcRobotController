@@ -343,7 +343,8 @@ public class AutonomousDrive {
         double totaldist = totalDistance;
 
 
-        double power;
+        double powerX;
+        double powerY;
         double slope = 90;
         double min = .25;
 
@@ -373,12 +374,13 @@ public class AutonomousDrive {
 
 
 
-            power = powerCurvingOmni(totalDistance);
+            powerX = targetX * 0.1;
+            powerY = targetX * 0.1;
             double botheadingRad = -Math.toRadians(odo.getHeading());
 
             // Rotate the movement direction counter to the bot's rotation
-            double rotX = targetYDistance * Math.cos(-botheadingRad) - targetXDistance * Math.sin(-botheadingRad);
-            double rotY = targetYDistance * Math.sin(-botheadingRad) + targetXDistance * Math.cos(-botheadingRad);
+            double rotX = powerY * Math.cos(-botheadingRad) - powerX * Math.sin(-botheadingRad);
+            double rotY = powerY * Math.sin(-botheadingRad) + powerX * Math.cos(-botheadingRad);
 
 
             //get target Heading
@@ -393,21 +395,7 @@ public class AutonomousDrive {
                 }
             }
 
-            angleTogo = degrees - botHeading;
-            if(Math.abs(newangleToGo) > 180){
-                if(botHeading < 180){
-                    newangleToGo = -((botHeading) + (360 - newDegree));
-                }else{
-                    newangleToGo = (newDegree + (360 - newDegree));
-                }
-            }
-
-            if(newangleToGo > 0) {
-                 rx =  (newangleToGo / slope < min) ? min : newangleToGo / slope;
-            }else{
-                 rx = (newangleToGo / slope > -min) ? -min : newangleToGo / slope;
-            }
-
+           rx = 0;
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 

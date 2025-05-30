@@ -14,8 +14,9 @@ import static org.firstinspires.ftc.teamcode.Robot.*;
 
 import java.sql.Driver;
 
-@TeleOp(name = "Telop")
-public class Teleop extends LinearOpMode {
+@TeleOp(name = "JackMode")
+public class JackMode extends LinearOpMode {
+
     public int state;
 
     public CameraPipeline cam;
@@ -24,7 +25,7 @@ public class Teleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        slow = 0.67;
+        slow = 0.5;
 
 //        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
@@ -90,7 +91,6 @@ public class Teleop extends LinearOpMode {
         double[] power = new double[4];
         while(opModeIsActive()){
             c.update();
-
             state = da.update_auto_state(prevC, c, state);
             state = da.auto_intake_and_transfer(state, c, cam);
             power = rcDriving();
@@ -110,14 +110,7 @@ public class Teleop extends LinearOpMode {
 //            telemetry.addData("Intake Servo: ", intake.transferServo.getConnectionInfo());
             telemetry.addData("state: ", state);
             telemetry.addData("pady y 2", c.padY2);
-            telemetry.addData("X", c.LStickX);
-            telemetry.addData("Y", c.LStickY);
             telemetry.addData("detect sample", cam.isDectedted());
-            telemetry.addData("Ts pos", intake.transferServo.getPosition());
-            telemetry.addData("rf speed: ", rf.getVelocity());
-            telemetry.addData("rb speed; ", rb.getVelocity());
-            telemetry.addData("lb speed: ", lb.getVelocity());
-            telemetry.addData("lf speed; ", lf.getVelocity());
 
 //            telemetry.addData("color r", intake.cs.red());
 //            telemetry.addData("color g", intake.cs.green());

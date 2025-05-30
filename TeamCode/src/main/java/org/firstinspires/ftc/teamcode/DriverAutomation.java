@@ -31,13 +31,17 @@ public class DriverAutomation {
         //        9 : wait for thing to be intaked
         switch(state){
             case 1:
-                intake.hslideToPos(intake.slideOut/2 + 200 +  (int)(1000 * c.padY2), 1.0);
-                if(Math.abs(intake.getCurrentHPos() - (intake.slideOut/2 + 200 + (int)(1000*c.padY2))) < 100){
+                int middle_of_submersible = intake.slideOut/2 + 200;
+                int target_position = middle_of_submersible + (int)(1000* c.padY2);
+
+                intake.hslideToPos(target_position, 1.0); //padY2 is finger y position on touchpad of gamepad2 (-1 to 1)
+
+                if(Math.abs(intake.getCurrentHPos() - target_position) < 100){
                     state = 2;
                 }
+
                 break;
             case 2:
-
                 state = 3;
                 break;
             case 3:
@@ -48,7 +52,7 @@ public class DriverAutomation {
                 state = 4;
                 break;
             case 4:
-                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 3 || cam.isDectedted()){
+                if(this.getElapsedSeconds(start_time, System.nanoTime()) > 3.0 || cam.isDectedted()){ //'this' refers to 'variable' in 'variable.auto_inatke_and_transfer(a, b,c)
                     state = 5;
                 }
                 break;
@@ -88,7 +92,7 @@ public class DriverAutomation {
 
 
     public double getElapsedSeconds(long startTime, long endTime) { // nano seconds
-        return (endTime - startTime) / 1000000000.0;
+        return (endTime - startTime) / 1_000_000_000.0;
     }
 
     public int update_auto_state(Control prevC, Control c, int state){

@@ -2,21 +2,25 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.Robot.intake;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 public class Intake {
 
     //Objects
-    public DcMotor hslide;
+    public DcMotorEx hslide;
     public Servo wheelServo;
     public Servo transferServo;
     public ColorSensor cs;
@@ -27,18 +31,23 @@ public class Intake {
     double inSlidePos = 0;
     double hSlideMax = 2400;
 
-    public double tsDown = .14; // 0.17
-    public double tsMiddle = 0.535;//0.525
-    public double tsUp = tsMiddle;//.71; // position that dumps the sample
+    public double tsDown = .0; // 0.17
+    public double tsMiddle = 0.46;//0.525
+    public double tsUp = 0.6;//.71; // position that dumps the sample
     public double tsTarget = tsMiddle;
 
     public int slideOut = 2400;
     public int slideForceIn = -100;
 
+    public DcMotorControllerEx motorControllerEx;
+
+    private LinearOpMode opMode;
 
 
     public Intake(OpMode opMode){
-        hslide = opMode.hardwareMap.get(DcMotor.class, "hslide");
+        this.opMode = (LinearOpMode) opMode;
+
+        hslide = opMode.hardwareMap.get(DcMotorEx.class, "hslide");
 
         wheelServo = opMode.hardwareMap.get(Servo.class, "servoWheelBlue");
         transferServo = opMode.hardwareMap.get(Servo.class, "servoTransferWhite");
@@ -52,6 +61,7 @@ public class Intake {
         hslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hslide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        motorControllerEx = (DcMotorControllerEx)hslide.getController();
 
     }
     public int getCurrentHPos(){return hslide.getCurrentPosition();}
@@ -122,6 +132,18 @@ public class Intake {
 
     public double getDSDistance(){
         return ds.getDistance(DistanceUnit.INCH);
+    }
+
+    public void homeHSlide(){
+        hslide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        double startTime = opMode.time;
+        while(motorControllerEx.getMotorCurrent(hslide.getPortNumber(), CurrentUnit.AMPS) < 9 && (opMode.time - startTime < 1)){
+            hslide.setPower(-0.5);
+            opMode.telemetry.addData("Hsilde Current: ", motorControllerEx.getMotorCurrent(hslide.getPortNumber(), CurrentUnit.AMPS));
+        }
+        hslide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hslide.setPower(0);
+
     }
 
 

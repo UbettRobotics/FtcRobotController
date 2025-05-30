@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.openftc.easyopencv.OpenCvCamera;
 
 @TeleOp(name = "TelopTest")
@@ -66,6 +67,8 @@ public class TeleopTest extends LinearOpMode {
              */
 
             ad.odo.update();
+
+            rcDrivingFC(this,ad.odo.getPosition().getHeading(AngleUnit.DEGREES));
 
 
 //            //ascension.clawExtenderToPos(c.LStickY2);

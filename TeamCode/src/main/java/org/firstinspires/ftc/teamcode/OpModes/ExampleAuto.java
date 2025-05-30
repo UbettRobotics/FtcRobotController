@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
+import org.firstinspires.ftc.teamcode.AutonomousDrive2;
+
 @Autonomous (name="ex. auto")
 public class ExampleAuto extends LinearOpMode {
 
@@ -20,14 +22,19 @@ public class ExampleAuto extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
-        telemetry.addData("startx", ad.getX());
-        telemetry.addData("starty", ad.getY());
-        telemetry.update();
-        sleep(200);
         ad.goToHeading(0);
-        ad.goToPoint(48,24,90,this);
-        sleep(1000);
-        ad.goToPoint(8.8,36,0,this);
+        ad.goToPointConstantHeading(48,36);
+        ad.goToHeading(0);
+        ad.goToPointConstantHeading(12,36);
+        ad.goToHeading(0);
+        ad.goToPointConstantHeading(12,72);
+        ad.goToHeading(0);
+        ad.goToPointConstantHeading(12,36);
+        ad.goToHeading(0);
+        ad.goToPointConstantHeading(8.5,36);
+        ad.goToHeading(0);
+
+
         sleep(3000);
     }
 }

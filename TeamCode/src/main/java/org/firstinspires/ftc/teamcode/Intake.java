@@ -21,6 +21,7 @@ public class Intake {
 
     //Objects
     public DcMotorEx hslide;
+//    public DcMotorEx hslide2;
     public Servo wheelServo;
     public Servo transferServo;
     public ColorSensor cs;
@@ -47,7 +48,8 @@ public class Intake {
     public Intake(OpMode opMode){
         this.opMode = (LinearOpMode) opMode;
 
-        hslide = opMode.hardwareMap.get(DcMotorEx.class, "hslide");
+       // hslide = opMode.hardwareMap.get(DcMotorEx.class, "hslide");
+//        hslide2 = opMode.hardwareMap.get(DcMotorEx.class, "hslide2");
 
         wheelServo = opMode.hardwareMap.get(Servo.class, "servoWheelBlue");
         transferServo = opMode.hardwareMap.get(Servo.class, "servoTransferWhite");
@@ -59,9 +61,13 @@ public class Intake {
         hslide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         hslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        hslide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hslide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        hslide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         motorControllerEx = (DcMotorControllerEx)hslide.getController();
+
 
     }
     public int getCurrentHPos(){return hslide.getCurrentPosition();}
@@ -72,7 +78,9 @@ public class Intake {
     public void resetHSlide(){
         if(slideAtBottom()) {
             hslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//            hslide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             hslide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            hslide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
     }
 
@@ -83,19 +91,25 @@ public class Intake {
     public void hslideToPow(double power){
         if(hslide.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
             hslide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//            hslide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
         hslide.setPower(power);
+//        hslide2.setPower(power);
     }
 
     public void hslideToPos(int pos, double power){
         hslide.setTargetPosition(pos);
         hslide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hslide.setPower(power);
+        /*hslide2.setTargetPosition(pos);
+        hslide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hslide2.setPower(power);*/
     }
 
 
     public void stopSlide(){
         hslide.setPower(0);
+        //hslide2.setPower(0);
     }
 
 

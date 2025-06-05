@@ -377,7 +377,7 @@ public class Robot {
         if(c.RStickY2 < -.5){
             intake.tsTarget = intake.tsDown;
         }else if(Math.abs(c.RStickX2) > .5 || c.RStickY2 > .5){
-            intake.tsTarget = intake.tsUp;
+            intake.tsTarget = intake.tsMiddle;
         }
         intake.setTransferServo();
 

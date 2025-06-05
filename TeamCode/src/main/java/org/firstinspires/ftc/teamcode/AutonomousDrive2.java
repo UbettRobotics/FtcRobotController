@@ -49,16 +49,16 @@ public class AutonomousDrive2 {
 
     //For Drive Movement
     private double kDP = 0.039;//0.045
-    private double kDI = 0.0013;//0.001
-    private double kDD = 0.007;//0.006
+    private double kDI = 0.001;//0.001
+    private double kDD = 0.0039;//0.006
     private double errorSumDX = 0;
     private double errorSumDY = 0;
     private double errorSumRangeD = 1;
 
     //For Turn Movement
-    private double kTP = 0.016;//0.016
+    private double kTP = 0.0158;//0.016
     private double kTI = 0.0015;//0.002
-    private double kTD = 0.003;//0.003
+    private double kTD = 0.0032;//0.003
     private double errorSumT = 0;
     private double errorSumRangeT = 5;
 
@@ -402,7 +402,9 @@ public class AutonomousDrive2 {
     }
 
     public double turnSlope(double targetHeading, double startHeading, double currentDist, double startDist){
-        return ((startHeading-targetHeading)/startDist) * (currentDist - startDist) + startHeading;
+        double slope = ((startHeading-targetHeading)/(startDist));
+
+        return slope * (currentDist - startDist) + startHeading;
     }
 
     public int inchesToTicks(double dist){
@@ -482,9 +484,9 @@ public class AutonomousDrive2 {
         }
 
 
-        opMode.telemetry.addData("pos: ", outtake.vslide.getCurrentPosition());
+        opMode.telemetry.addData("pos: ", intake.hslide.getCurrentPosition());
 
-        if(outtake.getVSlidePos() > 300 || intake.hslide.getCurrentPosition() > 500){
+        if(intake.hslide.getCurrentPosition() > 500){
             if(output < 0) return Math.max(-0.5, output);
             return Math.min(0.5, output);
         }
@@ -579,7 +581,7 @@ public class AutonomousDrive2 {
             double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
             double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
 
-            rotX = rotX * 1.1;  // Counteract imperfect strafing
+            rotX = rotX * 1.05;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -732,7 +734,7 @@ public class AutonomousDrive2 {
             double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
             double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
 
-            rotX = rotX * 1.1;  // Counteract imperfect strafing
+            rotX = rotX * 1.05;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,

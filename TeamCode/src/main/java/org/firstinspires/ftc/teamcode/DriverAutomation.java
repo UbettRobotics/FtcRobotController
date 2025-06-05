@@ -57,7 +57,7 @@ public class DriverAutomation {
                 }
                 break;
             case 5:
-                intake.tsTarget = intake.tsUp;
+                intake.tsTarget = intake.tsMiddle;
                 intake.setTransferServo();
                 intake.stopWheels();
                 state = 6;

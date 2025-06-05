@@ -102,7 +102,7 @@ public class RightThree extends LinearOpMode {
 
         outtake.vslideToPos(outtake.touchBarSlidePos, 1);
         outtake.openClaw();
-        ad2.goToPointConstantHeading(8,120);
+        ad2.goToPointConstantHeading(7.5,119);
         outtake.closeClaw();
 
         goClip(ad2 , 74);
@@ -140,7 +140,7 @@ public class RightThree extends LinearOpMode {
         }
 
         intake.runWheels(true);
-        sleep(500);
+        sleep(750);
         intake.stopWheels();
         intake.tsTarget = intake.tsMiddle-0.2;
         intake.setTransferServo();
@@ -154,7 +154,7 @@ public class RightThree extends LinearOpMode {
 
     public void goClip(AutonomousDrive2 ad2, double Y){
         outtake.vslideToPos(outtake.lowBucketSlidePos,1);
-        ad2.goToPointLinear(35,Y,0);
+        ad2.goToPointLinear(36,Y,0);
         ad2.goToPointConstantHeading(39.5,Y);
         outtake.vslideToPos(0,1);
         sleep(100);
@@ -163,7 +163,7 @@ public class RightThree extends LinearOpMode {
     public void goToWall(AutonomousDrive2 ad2) {
         outtake.vslideToPos(outtake.touchBarSlidePos, 1);
         outtake.openClaw();
-        ad2.goToPointLinear(8.5,120, 180);
+        ad2.goToPointLinear(7.5,119, 180);
         ad2.goToPointConstantHeading(8,120);
         outtake.closeClaw();
     }

@@ -14,7 +14,13 @@ public class MovementTest extends LinearOpMode {
 
         initAccessories(this);
 
-        double t = 0;
+
+        double p = 0.04;
+        double d = 0.005;
+
+        boolean state = false;
+        boolean prevstate = false;
+
 
         ad2.setOutputInfo(true);
         ad2.setTimeLimit(4);
@@ -28,19 +34,20 @@ public class MovementTest extends LinearOpMode {
 
 
         while(opModeIsActive()) {
-            ad2.goToPointConstantHeading(48, 0);
-            ad2.goToHeading(90);
-            ad2.goToPointConstantHeading(24, 12);
-            ad2.goToHeading(180);
-            ad2.goToPointConstantHeading(0, 0);
+
+
+            ad2.goToPointLinear(48, 0,45);
+            ad2.goToPointConstantHeading(0,0);
             ad2.goToHeading(180);
             sleep(100);
-            ad2.setPID(0.045,0.001,0.005-t,0);
+            p += 0.001;
+            ad2.setPID(p,0.001,d,0);
             telemetry.clearAll();
-            telemetry.addData("P: ", 0.006+t);
+            telemetry.addData("P: ", p);
+            telemetry.addData("D: ", d);
             telemetry.update();
-            t += 0.0001;
-            sleep(500);
+            sleep(1000);
+
         }
 
     }

@@ -122,6 +122,13 @@ public class Control implements Cloneable{
 
     }
 
+    public void vibrate(){
+       gm1.rumble(1000);
+       gm2.rumble(1000);
+
+
+    }
+
     @Override
     public Control clone() {
         try {

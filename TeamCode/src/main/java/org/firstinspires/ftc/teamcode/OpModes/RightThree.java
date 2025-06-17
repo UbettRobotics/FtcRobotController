@@ -20,15 +20,17 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 public class RightThree extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        AutonomousDrive2 ad2 = new AutonomousDrive2(this, true);
-        ad2.setTimeLimit(2.5);
-        ad2.setTimeLimit2(5);
-        ad2.setOutputInfo(true);
-
         initAccessories(this);
 
+        AutonomousDrive2 ad2 = new AutonomousDrive2(this, true);
+        ad2.setTimeLimit(1.5);
+        ad2.setTimeLimit2(4);
+        ad2.setOutputInfo(true);
 
-        telemetry.setAutoClear(true);
+
+
+
+
         CameraPipeline cam;
 
         int cameraMonitorViewId;
@@ -64,6 +66,9 @@ public class RightThree extends LinearOpMode {
         //Prep Robot for Auto
         outtake.stopVSlide();
         outtake.setBucketPos(outtake.bucketRegPos);
+        outtake.closeClaw();
+        sleep(50);
+        outtake.killClaw();
         intake.tsTarget = intake.tsMiddle - 0.1;
         intake.setTransferServo();
 
@@ -72,37 +77,50 @@ public class RightThree extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        outtake.killClaw();
 
         outtake.vslideToPos(outtake.lowBucketSlidePos, 1);
         sleep(400);
-        ad2.goToPointConstantHeading(39.5,72);
+        ad2.goToPointConstantHeading(39,72);
         outtake.vslideToPos(0,1);
-        sleep(100);
-
-        ad2.goToPointLinear(18,120,180);
-
-        intake.hslideToPos(2200, 1);
         sleep(200);
-        intake.runWheels(true);
+
+        ad2.goToPointConstantHeading(18,120);
+        ad2.goToHeading(180);
+        sleep(50);
+
+        intake.hslideToPos(2200, 1);
+        sleep(1000);
+        intake.hslideToPos(intake.slideForceIn,1);
+       /* intake.runWheels(true);
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
         transferandDump(cam);
 
-       /* ad2.goToPointConstantHeading(18,130);
+
+
+        ad2.goToPointConstantHeading(18,130);
 
         intake.hslideToPos(2200, 1);
         sleep(100);
         intake.runWheels(true);
         intake.tsTarget = intake.tsDown;
         intake.setTransferServo();
-        transferandDump(cam);
+         */
 
-        */
+
+        sleep(50);
+        outtake.setBucketPos(outtake.bucketOutPos);
+        sleep(1000);
+        outtake.setBucketPos(outtake.bucketRegPos);
+
+
 
 
         outtake.vslideToPos(outtake.touchBarSlidePos, 1);
         outtake.openClaw();
-        ad2.goToPointConstantHeading(7.5,119);
+        ad2.goToPointConstantHeading(8.25,119);
+        sleep(50);
         outtake.closeClaw();
 
         goClip(ad2 , 74);
@@ -126,7 +144,6 @@ public class RightThree extends LinearOpMode {
             if(getSeconds(startTime, System.nanoTime()) > 2.5){
                 timeOut = true;
             }
-            sleep(1);
         }
 
         intake.stopWheels();
@@ -154,17 +171,22 @@ public class RightThree extends LinearOpMode {
 
     public void goClip(AutonomousDrive2 ad2, double Y){
         outtake.vslideToPos(outtake.lowBucketSlidePos,1);
-        ad2.goToPointLinear(36,Y,0);
-        ad2.goToPointConstantHeading(39.5,Y);
+        ad2.goToPointConstantHeading(36,Y);
+        ad2.goToHeading(0);
+        ad2.goToPointConstantHeading(39,Y);
+        outtake.killClaw();
         outtake.vslideToPos(0,1);
-        sleep(100);
+        sleep(400);
     }
 
     public void goToWall(AutonomousDrive2 ad2) {
         outtake.vslideToPos(outtake.touchBarSlidePos, 1);
         outtake.openClaw();
-        ad2.goToPointLinear(7.5,119, 180);
-        ad2.goToPointConstantHeading(8,120);
+        ad2.goToPointConstantHeading(20,119);
+        ad2.goToHeading(180);
+        ad2.goToPointConstantHeading(8,119);
+        ad2.goToHeading(180);
+        sleep(100);
         outtake.closeClaw();
     }
     public static double getSeconds(long startTime, long endTime){

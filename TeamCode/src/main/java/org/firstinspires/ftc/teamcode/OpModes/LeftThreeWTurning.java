@@ -104,8 +104,12 @@ public class LeftThreeWTurning extends LinearOpMode {
     public void goAndScore(boolean high, boolean goToPos, boolean extendHSlide, boolean end){
         //Going to Bucket with Sample
         if(high){
+            intake.tsTarget = intake.tsOutOfWay;
+            intake.setTransferServo();
             outtake.vslideToPos(outtake.highBucketSlidePos, outtake.slidePower);
         } else {
+            intake.tsTarget = intake.tsOutOfWay;
+            intake.setTransferServo();
             outtake.vslideToPos(outtake.lowBucketSlidePos, outtake.slidePower);
         }
 
@@ -156,7 +160,7 @@ public class LeftThreeWTurning extends LinearOpMode {
         }
         intake.runWheels(true);
         //Start HSlide Slowly
-        intake.tsTarget = .325;//intake.tsDown;
+        intake.tsTarget = intake.tsDown + 0.03;//intake.tsDown;
         intake.setTransferServo();
 
 

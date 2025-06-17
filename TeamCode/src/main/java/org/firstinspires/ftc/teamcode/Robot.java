@@ -69,6 +69,8 @@ public class Robot {
 
     public static boolean foundBottom = false;
 
+    public static int side = -1;
+
 
 
 
@@ -187,6 +189,7 @@ public class Robot {
         double v4 = 0; // rb
 
         double sp = .65;
+        double mul = .40/.65; //for the dpad to be slower
 
 
 
@@ -219,25 +222,25 @@ public class Robot {
             v3 = -sp;
             v4 = sp;
         } else if (c.dpadUp1) {
-            v1 = sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = sp;
+            v1 = sp*mul;
+            v2 = sp*mul;
+            v3 = sp*mul;
+            v4 = sp*mul;
         } else if (c.dpadRight1) {
-            v1 = sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = sp;
+            v1 = sp*mul;
+            v2 = -sp*mul;
+            v3 = -sp*mul;
+            v4 = sp*mul;
         } else if (c.dpadDown1) {
-            v1 = -sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = -sp;
+            v1 = -sp*mul;
+            v2 = -sp*mul;
+            v3 = -sp*mul;
+            v4 = -sp*mul;
         } else if (c.dpadLeft1) {
-            v1 = -sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = -sp;
+            v1 = -sp*mul;
+            v2 = sp*mul;
+            v3 = sp*mul;
+            v4 = -sp*mul;
         } else if(c.RBumper1){
             v1 = sp;
             v2 = -sp;
@@ -357,15 +360,18 @@ public class Robot {
 
     }
 
+
     public static void rcIntake(int state){
         intake.resetHSlide();
-        if(c.RBumper2 ){
+
+        if (c.RBumper2) {
             intake.runWheels(true);
-        } else if(c.LBumper2){
+        } else if (c.LBumper2) {
             intake.runWheels(false);
         } else if (state != 4 && state != 9) {
             intake.stopWheels();
         }
+
 
 //        if(c.a2){
 //            intake.tsTarget = intake.tsDown;
@@ -396,6 +402,67 @@ public class Robot {
 
     }
 
+        public static void rcIntake(int state, int colorNum){
+            intake.resetHSlide();
+
+            if(side == 0) {
+                if (c.RBumper2  && colorNum != 1) {
+                    intake.runWheels(true);
+                } else if (c.LBumper2 || colorNum == 1 ) {
+                    intake.runWheels(false);
+                    c.vibrate();
+                } else if (state != 4 && state != 9) {
+                    intake.stopWheels();
+                }
+            }else if(side == 1){
+                if (c.RBumper2 && colorNum != 0) {
+                    intake.runWheels(true);
+                } else if (c.LBumper2 || colorNum ==01 ) {
+                    intake.runWheels(false);
+                    c.vibrate();
+                } else if (state != 4 && state != 9) {
+                    intake.stopWheels();
+                }
+            }
+            else{
+                if (c.RBumper2) {
+                    intake.runWheels(true);
+                } else if (c.LBumper2) {
+                    intake.runWheels(false);
+                } else if (state != 4 && state != 9) {
+                    intake.stopWheels();
+                }
+            }
+
+
+//        if(c.a2){
+//            intake.tsTarget = intake.tsDown;
+//        }else if(c.b2){
+//            intake.tsTarget = intake.tsMiddle;
+//        }else if(c.y2 && intake.hslide.getCurrentPosition() < 80){
+//            intake.tsTarget = intake.tsUp;
+//        }
+            if(c.RStickY2 < -.5){
+                intake.tsTarget = intake.tsDown;
+            }else if(Math.abs(c.RStickX2) > .5 || c.RStickY2 > .5){
+                intake.tsTarget = intake.tsMiddle;
+            }
+            intake.setTransferServo();
+
+
+
+
+            if(c.LStickY2 > .05 && intake.getCurrentHPos() < intake.hSlideMax){
+                intake.hslideToPow(c.LStickY2);
+            } else if (c.LStickY2 < -.05) {
+                intake.hslideToPow(c.LStickY2);
+            }else {
+                if(intake.hslide.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+                    intake.stopSlide();
+                }
+            }
+
+        }
     //Outtake Control
     public static void rcOuttake(){
 
@@ -408,18 +475,17 @@ public class Robot {
         }
         if(foundBottom) {
             if (c.dpadUp2) {
-                //intake.tsTarget = intake.tsMiddle;
+                intake.tsTarget = intake.tsOutOfWay;
                 outtake.targetPos = outtake.highBucketSlidePos;
             } else if (c.dpadLeft2) {
-                //intake.tsTarget = intake.tsMiddle;
+                intake.tsTarget = intake.tsOutOfWay;
                 outtake.targetPos = outtake.lowBucketSlidePos;
             } else if (c.dpadDown2) {
-                outtake.killClaw();
-                //intake.tsTarget = intake.tsMiddle;
+                intake.tsTarget = intake.tsOutOfWay;
                 outtake.killClaw();
                 outtake.targetPos = outtake.bottomSlidePos; //timing will need testing
             } else if (c.dpadRight2) {
-                //intake.tsTarget = intake.tsMiddle;
+                intake.tsTarget = intake.tsOutOfWay;
                 outtake.killClaw();
                 outtake.targetPos = outtake.touchBarSlidePos;
             }
@@ -471,6 +537,8 @@ public class Robot {
 
 
     }
+
+
 
 
 

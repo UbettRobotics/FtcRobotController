@@ -32,9 +32,10 @@ public class Intake {
     double inSlidePos = 0;
     double hSlideMax = 2400;
 
-    public double tsDown = .0; // 0.17
-    public double tsMiddle = 0.46;//0.525
-    public double tsUp = 0.6;//.71; // position that dumps the sample
+    public double tsDown = .3775;
+    public double tsOutOfWay = .44;
+    public double tsMiddle = 0.455;
+    public double tsUp = tsMiddle;
     public double tsTarget = tsMiddle;
 
     public int slideOut = 2400;
@@ -48,7 +49,7 @@ public class Intake {
     public Intake(OpMode opMode){
         this.opMode = (LinearOpMode) opMode;
 
-       // hslide = opMode.hardwareMap.get(DcMotorEx.class, "hslide");
+        hslide = opMode.hardwareMap.get(DcMotorEx.class, "hslide");
 //        hslide2 = opMode.hardwareMap.get(DcMotorEx.class, "hslide2");
 
         wheelServo = opMode.hardwareMap.get(Servo.class, "servoWheelBlue");

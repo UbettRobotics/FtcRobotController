@@ -1,6 +1,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -40,25 +42,25 @@ public class AutonomousDrive2 {
 
 
     //Error Tolerances
-    public final double POS_ERROR_TOLERANCE = 0.5;
-    public final double HEADING_ERROR_TOLERANCE = 0.1;
+    public final double POS_ERROR_TOLERANCE = 0.25;
+    public final double HEADING_ERROR_TOLERANCE = 0.05;
 
     private final double MAX_MOTOR_CURRENT = 9.5;
     private final double DEAD_WHEEL_RADIUS_MM = 16;
     //PID controls
 
     //For Drive Movement
-    private double kDP = 0.039;//0.045
+    private double kDP = 0.015;//0.015
     private double kDI = 0.001;//0.001
-    private double kDD = 0.0039;//0.006
+    private double kDD = 0.004;//0.004
     private double errorSumDX = 0;
     private double errorSumDY = 0;
     private double errorSumRangeD = 1;
 
     //For Turn Movement
-    private double kTP = 0.0158;//0.016
-    private double kTI = 0.0015;//0.002
-    private double kTD = 0.0032;//0.003
+    private double kTP = 0.0182;//0.016
+    private double kTI = 0.0005;//0.002
+    private double kTD = 0.0014;//0.003
     private double errorSumT = 0;
     private double errorSumRangeT = 5;
 
@@ -134,6 +136,11 @@ public class AutonomousDrive2 {
 
     double targetTime = 0;
 
+    public FtcDashboard dashboard;
+
+    public Telemetry telemetryd;
+
+
 
 
 
@@ -145,6 +152,9 @@ public class AutonomousDrive2 {
 
         controlHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
         expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
+
+        dashboard = FtcDashboard.getInstance();
+        telemetryd = dashboard.getTelemetry();
 
         lf = opMode.hardwareMap.get(DcMotorEx.class, leftFrontName);
         lb = opMode.hardwareMap.get(DcMotorEx.class, leftBackName);
@@ -174,6 +184,7 @@ public class AutonomousDrive2 {
         motorNums.add(leftBackNum);
         motorNums.add(rightFrontNum);
         motorNums.add(rightBackNum);
+
 
 
         motorControllerEx = (DcMotorControllerEx)(lf.getController());
@@ -363,7 +374,7 @@ public class AutonomousDrive2 {
 
     public void outputInfo(){
         if(outInfo){
-            opMode.telemetry.clearAll();
+
             opMode.telemetry.addData("X pos: ", getX());
             opMode.telemetry.addData("Y pos: ", getY());
             opMode.telemetry.addData("Heading: ", getHeading());
@@ -375,8 +386,13 @@ public class AutonomousDrive2 {
         }
     }
 
-    public void outputInfo(double distanceToGo, double distanceTotal, double power){
-        opMode.telemetry.clearAll();
+    public void outputInfo(String[] names, double[] vals){
+        for(int i = 0; i < names.length; i++){
+            telemetryd.addData(names[i], vals[i]);
+        }
+        telemetryd.update();
+    }
+    public void outputInfo(double error, double target){
 //        opMode.telemetry.addData("distanceToGo", distanceToGo);
 //        opMode.telemetry.addData("distanceTotal", distanceTotal);
 //        opMode.telemetry.addData("power", power);
@@ -386,11 +402,11 @@ public class AutonomousDrive2 {
 //        opMode.telemetry.addData("is moving", isMoving());
 //        opMode.telemetry.update();
 
-        opMode.telemetry.addData("get x", this.getX());
-        opMode.telemetry.addData("get y", this.getY());
-        opMode.telemetry.addData("v1 power", power);
-        opMode.telemetry.addData("total distance", distanceToGo);
-        opMode.telemetry.update();
+
+        telemetryd.addData("Error: ", error);
+        telemetryd.addData("Target: ", target);
+        telemetryd.update();
+
     }
 
     public void outPutDriveInfo(ArrayList<String> names,ArrayList<Double> list){
@@ -504,7 +520,6 @@ public class AutonomousDrive2 {
             distanceToGo =ticksToInches(startpos - odo.getEncoderX()) - distanceTotal;
             double power = powerCurvingOrg(-distanceToGo);
             drive(power, power, power, power);
-            outputInfo(distanceToGo, distanceTotal, power);
 
         }
         drive(0,0,0,0);
@@ -545,7 +560,10 @@ public class AutonomousDrive2 {
             }
 
             odo.update();
-            outputInfo();
+
+            double[] list1 = new double[]{getX(),getY(), targetX, targetY};
+            String[] list2 = new String[]{"X: ","Y: ","Target X: ", "target Y: " };
+            outputInfo(list2,list1);
 
 
             targetXDist =(targetX - getX());
@@ -581,7 +599,7 @@ public class AutonomousDrive2 {
             double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
             double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
 
-            rotX = rotX * 1.05;  // Counteract imperfect strafing
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -597,7 +615,6 @@ public class AutonomousDrive2 {
             drive(v2,v4,v3,v1);
         }
         drive(0,0,0,0);
-        opMode.sleep(150);
     }
 
     public void goToPointConstantHeadingOrg(double targetX, double targetY){
@@ -661,7 +678,6 @@ public class AutonomousDrive2 {
             drive(v2,v4,v3,v1);
         }
         drive(0,0,0,0);
-        opMode.sleep(150);
     }
 
     public void goToPointLinear(double targetX, double targetY, double targetHeading){
@@ -750,7 +766,6 @@ public class AutonomousDrive2 {
             drive(v2,v4,v3,v1);
         }
         drive(0,0,0,0);
-        opMode.sleep(150);
     }
 
     public void goToPointLinearOrg(double targetX, double targetY, double targetHeading){
@@ -823,17 +838,16 @@ public class AutonomousDrive2 {
         double angleToGo = getAngleToGo(getHeading(), heading);
         double power;
         double startTime = opMode.time;
-        double startTime2 = opMode.time;
         errorSumT = 0;
-        while(!timeCheck2(startTime2, opMode.time) &&  !checkTime(startTime, opMode.time) && Math.abs(angleToGo) > HEADING_ERROR_TOLERANCE && opMode.opModeIsActive()){
+        while(!checkTime(startTime, opMode.time) && Math.abs(angleToGo) > HEADING_ERROR_TOLERANCE && opMode.opModeIsActive()){
             odo.update();
-            outputInfo();
+
             angleToGo = getAngleToGo(getHeading(), heading);
+            outputInfo(getHeading(), heading);
             power = turnPID(angleToGo);
             drive(power, power,-power,-power);
         }
         drive(0,0,0,0);
-        opMode.sleep(50);
     }
 
     public void goToHeadingOrg(double heading){

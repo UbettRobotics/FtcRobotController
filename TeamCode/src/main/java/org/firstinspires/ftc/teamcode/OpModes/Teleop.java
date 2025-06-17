@@ -83,6 +83,20 @@ public class Teleop extends LinearOpMode {
         });
 
         state = 0;
+        side = -1;
+
+        while(opModeInInit()) {
+            c.update();
+            if (c.LBumper2) {
+                side = 0;//0 is red
+            } else if (c.RBumper2) {
+                side = 1;//1  is blue
+            }
+
+            String[] sides = {"Neither", "Red", "blue"};
+            //telemetry.addData("Side: ", sides[side + 1]);
+            //telemetry.update();
+        }
 
         waitForStart();
         intake.tsTarget = intake.tsMiddle;
@@ -95,7 +109,7 @@ public class Teleop extends LinearOpMode {
             state = da.auto_intake_and_transfer(state, c, cam);
             power = rcDriving();
 
-            rcIntake(state);
+            rcIntake(state, cam.findColor());
             rcOuttake();
             //rcAscension();
 
@@ -125,8 +139,10 @@ public class Teleop extends LinearOpMode {
 //            telemetry.addData("ds distance", intake.getDSDistance());
 //            telemetry.addData("avg", (intake.cs.red() + intake.cs.green() + intake.cs.blue())/3.0);
 
-
+            telemetry.addData("colorNum: ", cam.findColor());
             telemetry.update();
+
+
 
 
             prevC = c.clone();

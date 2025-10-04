@@ -1,32 +1,21 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorHuskyLens;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.TestOpModes.MotorTest;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import java.sql.Driver;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 
 public class Robot {
@@ -42,39 +31,59 @@ public class Robot {
 
     public static DcMotorControllerEx dcMotorControllerEx;
 
+    public static DistanceSensor distL, distR;
+
 
     public static Servo camServo;
 
-    public static HuskeyAiCamera huskCam;
+    //public static HuskeyAiCamera huskCam;
 
     public static double gear = 1;
+    public static boolean autoTurning = false;
     private static double gearprev = 1;
 
 
-    public static Control c;
-    public static Control prevC;
+    public static GoBildaPinpointDriver odo;
+
+    public static AutonomousDrive2 ad2;
 
 
-    public static Intake intake;
-    public static Outtake outtake;
-    //public static Ascension ascension;
+    //Blue Side is 0 and Red is 1
+    public static int side = 0;
 
-    public static AutonomousDrive ad;
-    public static IMUControl imu;
-    //public static AprilTagPipeline aptag;
-
-    public static DriverAutomation da;
 
     public static DcMotor[] motors = new DcMotor[4];
 
-    public static boolean foundBottom = false;
-
-    public static int side = -1;
 
 
+    public static void intAll(LinearOpMode opmode, int sideNum){
+        initDrive(opmode);
+        side = sideNum;
+
+        odo = opmode.hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        //Pinpoint offsets from Center in mm
+        //Left is +X, Front is +Y
+        odo.setOffsets(-203,0,DistanceUnit.MM);
+
+        odo.recalibrateIMU();
+        opmode.sleep(200);
+        odo.resetPosAndIMU();
+        opmode.sleep(200);
+        odo.setHeading(0, AngleUnit.DEGREES);
+
+        ad2 = new AutonomousDrive2(opmode, odo);
+
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, 0,0,AngleUnit.DEGREES, -90));
 
 
-    public static void initDrive(OpMode opmode) {
+
+    }
+
+
+    public static void initDrive(LinearOpMode opmode) {
+        distL = opmode.hardwareMap.get(DistanceSensor.class, "distsensL");
+        distR = opmode.hardwareMap.get(DistanceSensor.class, "distsensR");
+
         rf = opmode.hardwareMap.get(DcMotorEx.class, "rf");
         rb = opmode.hardwareMap.get(DcMotorEx.class, "rb");
         lb = opmode.hardwareMap.get(DcMotorEx.class, "lb");
@@ -94,7 +103,7 @@ public class Robot {
         //Encoders go to those ports
 
 
-        for(int i = 0; i < 4;i++){
+        for (int i = 0; i < 4; i++) {
             dcMotorControllerEx.setMotorCurrentAlert(motors[i].getPortNumber(), 5, CurrentUnit.AMPS);
         }
 
@@ -106,439 +115,110 @@ public class Robot {
         lb.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
-
     }
 
-    public static void initAccessories(OpMode opMode){
-        //camServo = opMode.hardwareMap.get(Servo.class, "camservo");
-        intake = new Intake(opMode);
-        outtake = new Outtake(opMode);
-        //ascension = new Ascension(opMode);
-        foundBottom = false;
-        huskCam = new HuskeyAiCamera((LinearOpMode)opMode);
-    }
-
-
-    public static void initAll(OpMode opMode){
-        initAll(opMode, true);
-    }
-    public static void initAll(OpMode opMode, boolean left){
-
-
-        initDrive(opMode);
-        initAccessories(opMode);
-//        imu = new IMUControl(opMode);
-
-        c = new Control(opMode);
-        c.update();
-
-        prevC = (Control)c.clone();
-
-        ad = new AutonomousDrive((LinearOpMode) opMode, left);
-        da = new DriverAutomation();
-
-
-
-
-
-
-
-        //Camera
-
-
-
-        //aptag = new AprilTagPipeline((LinearOpMode) opMode);
-
-    }
-
-
-
-
-
+    //Getters and Setters and basic functions
     public static void drive(double rfPower, double rbPower, double lbPower, double lfPower) {
 
         rf.setPower(rfPower);
         rb.setPower(rbPower);
         lb.setPower(lbPower);
         lf.setPower(lfPower);
-
-
     }
 
+    public static void driveFC(LinearOpMode opMode){
+        odo.update();
+
+        double targetX = odo.getPosY(DistanceUnit.INCH);
+        double targetY = odo.getPosX(DistanceUnit.INCH);
 
 
-    public static double updateGear(){
-
-        if((c.options && !prevC.options)){
-            gearprev = (gearprev == slow) ? fast : slow;
-        }
-        gear = (intake.getCurrentHPos() > 500 || (outtake.vslide.getTargetPosition() > outtake.lowBucketSlidePos && outtake.getVSlidePos() > outtake.lowBucketSlidePos)) ? slow : gearprev;
-        //gear = (outtake.getVSlidePos() > outtake.touchBarSlidePos) ? slow : gearprev;
-
-        return gear;
-    }
-
-
-    public static double[] rcDriving(){
-
-        updateGear();
-
-        double v1 = 0; // lf
-        double v2 = 0; // rf
-        double v3 = 0; // lb
-        double v4 = 0; // rb
-
-        double sp = .65;
-        double mul = .40/.65; //for the dpad to be slower
+        double angle = getRelativeTargetAngle(48-targetX, 48-targetY);
 
 
 
-        if (Math.abs(c.LStickX) > 0.05 || Math.abs(c.LStickY) > 0.05 || Math.abs(c.RStickX) > 0.05) {
-
-            if(intake.transferServo.getPosition() == intake.tsDown){
-                c.RStickX = 0;
-            }
-
-            double r = Math.hypot(c.LStickX, c.LStickY) * gear;
-            double robotAngle = Math.atan2(c.LStickY, c.LStickX) - Math.PI / 4;
-
-            v1 = r * Math.sin(robotAngle) + c.RStickX; //lf // was cos
-            v2 = r * Math.cos(robotAngle) - c.RStickX; //rf // was sin
-            v3 = r * Math.cos(robotAngle) + c.RStickX; //lb // was sin
-            v4 = r * Math.sin(robotAngle) - c.RStickX; //rb // was cos
 
 
-        }
-
-        else if (c.LTrigger1 > .25) {
-            v1 = -sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = -sp;
-
-        } else if (c.RTrigger1 > .25) {
-            v1 = sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = sp;
-        } else if (c.dpadUp1) {
-            v1 = sp*mul;
-            v2 = sp*mul;
-            v3 = sp*mul;
-            v4 = sp*mul;
-        } else if (c.dpadRight1) {
-            v1 = sp*mul;
-            v2 = -sp*mul;
-            v3 = -sp*mul;
-            v4 = sp*mul;
-        } else if (c.dpadDown1) {
-            v1 = -sp*mul;
-            v2 = -sp*mul;
-            v3 = -sp*mul;
-            v4 = -sp*mul;
-        } else if (c.dpadLeft1) {
-            v1 = -sp*mul;
-            v2 = sp*mul;
-            v3 = sp*mul;
-            v4 = -sp*mul;
-        } else if(c.RBumper1){
-            v1 = sp;
-            v2 = -sp;
-            v3 = sp;
-            v4 = -sp;
-        }else if(c.LBumper1){
-            v1 = -sp;
-            v2 = sp;
-            v3 = -sp;
-            v4 = sp;
-        }else {
-            v1 = 0;
-            v2 = 0;
-            v3 = 0;
-            v4 = 0;
-        }
+        double currentHeadingRad = Math.toRadians(odo.getHeading(AngleUnit.DEGREES));
 
 
-        //drive(v2, v4, v3, v1);
-        return new double[] {v1, v2, v3, v4};
-
-
-
-    }
-
-    public static double[] rcDrivingFC(LinearOpMode opMode, double num){
-        double sp = 0.5;
-
-        double v1 = 0; // lf
+        double v1 = 0;// lf
         double v2 = 0; // rf
         double v3 = 0; // lb
         double v4 = 0; // rb
 
 
-
-
-        if (Math.abs(c.LStickX) > 0 || Math.abs(c.LStickY) > 0 || Math.abs(c.RStickX) > 0) {
-
-            double botHeading = -Math.toRadians(num);
-            double y = -c.LStickY; // Remember, Y stick value is reversed
-            double x = c.LStickX;
-            double rx = c.RStickX;
-            // Rotate the movement direction counter to the bot's rotation
-            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
-            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
-
-            rotX = rotX * 1.1;  // Counteract imperfect strafing
-
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio,
-            // but only if at least one is out of the range [-1, 1]
-            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
-            v1 = (rotY + rotX + rx) / denominator;
-            v3 = (rotY - rotX + rx) / denominator;
-            v2 = (rotY - rotX - rx) / denominator;
-            v4 = (rotY + rotX - rx) / denominator;
+        double y = -opMode.gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = opMode.gamepad1.left_stick_x;
+        double rx = 0;
 
 
 
+        if(opMode.gamepad1.right_bumper){
+            rx = Math.max(-0.3,Math.min(0.3,Robot.turnPID(Robot.getAngleToGo(odo.getHeading(AngleUnit.DEGREES)+180,angle))));
+            opMode.telemetry.addData("angle to go: ", rx);
+            opMode.telemetry.update();
+        }else{
+            rx = opMode.gamepad1.right_stick_x;
+        }
 
+
+
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
+        double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
+
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        v1 = (rotY + rotX + rx) / denominator;
+        v3 = (rotY - rotX + rx) / denominator;
+        v2 = (rotY - rotX - rx) / denominator;
+        v4 = (rotY + rotX - rx) / denominator;
+
+
+        if(opMode.gamepad1.right_bumper||Math.abs(opMode.gamepad1.right_stick_x) >= 0.05 || Math.abs(opMode.gamepad1.left_stick_x) >= 0.05 || Math.abs(opMode.gamepad1.left_stick_y) >=0.05){
             Robot.drive(v2, v4, v3, v1);
-
-
-        }else if (c.LTrigger1 > .25) {
-            v1 = -sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = -sp;
-
-        } else if (c.RTrigger1 > .25) {
-            v1 = sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = sp;
-        } else if (c.dpadUp1) {
-            v1 = sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = sp;
-        } else if (c.dpadRight1) {
-            v1 = sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = sp;
-        } else if (c.dpadDown1) {
-            v1 = -sp;
-            v2 = -sp;
-            v3 = -sp;
-            v4 = -sp;
-        } else if (c.dpadLeft1) {
-            v1 = -sp;
-            v2 = sp;
-            v3 = sp;
-            v4 = -sp;
-        } else if(c.RBumper1){
-            v1 = sp;
-            v2 = -sp;
-            v3 = sp;
-            v4 = -sp;
-        }else if(c.LBumper1){
-            v1 = -sp;
-            v2 = sp;
-            v3 = -sp;
-            v4 = sp;
         }else {
-            v1 = 0;
-            v2 = 0;
-            v3 = 0;
-            v4 = 0;
+            Robot.drive(0,0,0,0);
         }
-
-
-        drive(v2, v4, v3, v1);
-        return new double[] {v2, v4, v3, v1};
-
-
-
     }
 
-
-    public static void rcIntake(int state){
-        intake.resetHSlide();
-
-        if (c.RBumper2) {
-            intake.runWheels(true);
-        } else if (c.LBumper2) {
-            intake.runWheels(false);
-        } else if (state != 4 && state != 9) {
-            intake.stopWheels();
-        }
-
-
-//        if(c.a2){
-//            intake.tsTarget = intake.tsDown;
-//        }else if(c.b2){
-//            intake.tsTarget = intake.tsMiddle;
-//        }else if(c.y2 && intake.hslide.getCurrentPosition() < 80){
-//            intake.tsTarget = intake.tsUp;
-//        }
-        if(c.RStickY2 < -.5){
-            intake.tsTarget = intake.tsDown;
-        }else if(Math.abs(c.RStickX2) > .5 || c.RStickY2 > .5){
-            intake.tsTarget = intake.tsMiddle;
-        }
-        intake.setTransferServo();
-
-
-
-
-        if(c.LStickY2 > .05 && intake.getCurrentHPos() < intake.hSlideMax){
-            intake.hslideToPow(c.LStickY2);
-        } else if (c.LStickY2 < -.05) {
-            intake.hslideToPow(c.LStickY2);
-        }else {
-            if(intake.hslide.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
-                intake.stopSlide();
-            }
-        }
-
+    public static double getRelativeTargetAngle(double x, double y){
+        double out = 0;
+        out = Math.atan2(x,y);
+        return  (Math.toDegrees(out) )% 360;
     }
 
-        public static void rcIntake(int state, int colorNum){
-            intake.resetHSlide();
-
-            if(side == 0) {
-                if (c.RBumper2  && colorNum != 1) {
-                    intake.runWheels(true);
-                } else if (c.LBumper2 || colorNum == 1 ) {
-                    intake.runWheels(false);
-                    c.vibrate();
-                } else if (state != 4 && state != 9) {
-                    intake.stopWheels();
-                }
-            }else if(side == 1){
-                if (c.RBumper2 && colorNum != 0) {
-                    intake.runWheels(true);
-                } else if (c.LBumper2 || colorNum ==01 ) {
-                    intake.runWheels(false);
-                    c.vibrate();
-                } else if (state != 4 && state != 9) {
-                    intake.stopWheels();
-                }
-            }
-            else{
-                if (c.RBumper2) {
-                    intake.runWheels(true);
-                } else if (c.LBumper2) {
-                    intake.runWheels(false);
-                } else if (state != 4 && state != 9) {
-                    intake.stopWheels();
-                }
-            }
-
-
-//        if(c.a2){
-//            intake.tsTarget = intake.tsDown;
-//        }else if(c.b2){
-//            intake.tsTarget = intake.tsMiddle;
-//        }else if(c.y2 && intake.hslide.getCurrentPosition() < 80){
-//            intake.tsTarget = intake.tsUp;
-//        }
-            if(c.RStickY2 < -.5){
-                intake.tsTarget = intake.tsDown;
-            }else if(Math.abs(c.RStickX2) > .5 || c.RStickY2 > .5){
-                intake.tsTarget = intake.tsMiddle;
-            }
-            intake.setTransferServo();
-
-
-
-
-            if(c.LStickY2 > .05 && intake.getCurrentHPos() < intake.hSlideMax){
-                intake.hslideToPow(c.LStickY2);
-            } else if (c.LStickY2 < -.05) {
-                intake.hslideToPow(c.LStickY2);
-            }else {
-                if(intake.hslide.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
-                    intake.stopSlide();
-                }
-            }
-
-        }
-    //Outtake Control
-    public static void rcOuttake(){
-
-
-        //Slide Controls
-        outtake.resetVSlide();
-        if(!foundBottom && outtake.slideAtBottom()) {
-            foundBottom = outtake.slideAtBottom();
-            outtake.stopVSlide();
-        }
-        if(foundBottom) {
-            if (c.dpadUp2) {
-                intake.tsTarget = intake.tsOutOfWay;
-                outtake.targetPos = outtake.highBucketSlidePos;
-            } else if (c.dpadLeft2) {
-                intake.tsTarget = intake.tsOutOfWay;
-                outtake.targetPos = outtake.lowBucketSlidePos;
-            } else if (c.dpadDown2) {
-                intake.tsTarget = intake.tsOutOfWay;
-                outtake.killClaw();
-                outtake.targetPos = outtake.bottomSlidePos; //timing will need testing
-            } else if (c.dpadRight2) {
-                intake.tsTarget = intake.tsOutOfWay;
-                outtake.killClaw();
-                outtake.targetPos = outtake.touchBarSlidePos;
-            }
-
-
-            if (!(outtake.targetPos == 0 && Math.abs(outtake.targetPos - outtake.getVSlidePos()) < 5)) {
-                outtake.vslideToPos(outtake.targetPos, outtake.slidePower);
-            } else {
-                outtake.stopVSlide();
-            }
-        } else {
-            if(c.dpadUp2){
-                outtake.vslideToPow(outtake.slidePower);
-            } else if(c.dpadDown2){
-                outtake.vslideToPow(-outtake.slidePower);
-            } else {
-
-                outtake.stopVSlide();
-            }
-        }
-
-        //Bucket Positions (for dumping)
-        if (c.LTrigger2 > .10){
-            outtake.targetBucketPos = outtake.bucketOutPos;
-        } else {
-            outtake.targetBucketPos = outtake.bucketRegPos;
-        }
-
-        if(c.a2){
-            outtake.closeClaw();
-        } else if(c.b2){
-            outtake.openClaw();
-        } else if(c.x2){
-            outtake.killClaw();
-        }
-
-        outtake.setBucketPos(outtake.targetBucketPos);
-
+    public static double turnPID(double error){
+        double output = error * 0.0052 -odo.getHeadingVelocity(AngleUnit.DEGREES.getUnnormalized())*0.0005;
+        return output;
     }
 
-    public static void rcAscension(){
-//        if(c.bigButton && !prevC.bigButton){
-//            if(ascension.up){
-//                ascension.down();
-//            } else {
-//                ascension.up();
-//            }
-//        }
+    public static double getAngleToGo(double currentHeading,double degrees){
+        double angleTogo = degrees - currentHeading;
 
-
+        if(Math.abs(angleTogo) > 180){
+            if(currentHeading < 180){
+                angleTogo = -((currentHeading) + (360 - degrees));
+            }else{
+                angleTogo = (degrees + (360 - currentHeading));
+            }
+        }
+        return angleTogo;
     }
 
+    public static void lineup(){
+        double diff = distL.getDistance(DistanceUnit.INCH) - distR.getDistance(DistanceUnit.INCH);
 
+        diff *= -10;
+        double turn = turnPID(diff);
+
+        drive(turn,turn, -turn,-turn);
+    }
 
 
 

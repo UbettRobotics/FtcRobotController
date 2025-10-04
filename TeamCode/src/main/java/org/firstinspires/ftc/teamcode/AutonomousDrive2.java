@@ -2,6 +2,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -89,19 +90,19 @@ public class AutonomousDrive2 {
 
     //Gobilda Pinpoint
     public String odoName = "odo";
-    public GoBildaPinpointDriver odo;
+    public static GoBildaPinpointDriver odo;
 
     //Pinpoint offsets from Center in mm and encoder Direction
     //Left is +X, Front is +Y
-    public double xoffset = -166;//-166
-    public double yoffset = 19;//20.4
+    public double xOffset = -203;//-203mm
+    public double yOffset = 0;//0
 
-    public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
+    public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     public GoBildaPinpointDriver.EncoderDirection yDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
     //Dead Wheel Type
 
-    public GoBildaPinpointDriver.GoBildaOdometryPods encoderPod = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD;
+    public GoBildaPinpointDriver.GoBildaOdometryPods encoderPod = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
 
     //LinearOpmode
 
@@ -146,12 +147,13 @@ public class AutonomousDrive2 {
 
 
 
+
     //Constructor with different pose
     public AutonomousDrive2(LinearOpMode opMode, boolean isLeft){
         this.opMode = opMode;
 
         controlHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
-        expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
+        //expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
 
         dashboard = FtcDashboard.getInstance();
         telemetryd = dashboard.getTelemetry();
@@ -171,8 +173,10 @@ public class AutonomousDrive2 {
         lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lb.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf.setDirection(DcMotorSimple.Direction.FORWARD);
+        lb.setDirection(DcMotorSimple.Direction.FORWARD);
+        rf.setDirection(DcMotorSimple.Direction.FORWARD);
+        rb.setDirection(DcMotorSimple.Direction.FORWARD);
 
 
         leftFrontNum = lf.getPortNumber();
@@ -199,7 +203,7 @@ public class AutonomousDrive2 {
 
         //Pinpoint offsets from Center in mm
         //Left is +X, Front is +Y
-        odo.setOffsets(xoffset, yoffset);
+        odo.setOffsets(xOffset, yOffset, DistanceUnit.MM);
         odo.setEncoderDirections(xDirection, yDirection);
         odo.setEncoderResolution(encoderPod);
 
@@ -210,19 +214,58 @@ public class AutonomousDrive2 {
 
         double x =(isLeft) ? 8.5 : 0;
         double y = (isLeft) ? -72 : 0;
-        double heading = (isLeft) ? 180 : 0;
+        double heading = (isLeft) ? 0 : 0;
         resetOdo((LinearOpMode)opMode, x, y, heading);
         opMode.sleep(100);
     }
+
+    public AutonomousDrive2(LinearOpMode opMode, GoBildaPinpointDriver odo){
+        this.opMode = opMode;
+        this.odo = odo;
+
+        controlHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
+        //expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
+
+        dashboard = FtcDashboard.getInstance();
+        telemetryd = dashboard.getTelemetry();
+
+        lf = Robot.lf;
+        lb = Robot.lb;
+        rb = Robot.rb;
+        rf = Robot.rf;
+
+
+
+        leftFrontNum = lf.getPortNumber();
+        leftBackNum = lb.getPortNumber();
+        rightFrontNum = rf.getPortNumber();
+        rightBackNum = rb.getPortNumber();
+
+        motorNums.add(leftFrontNum);
+        motorNums.add(leftBackNum);
+        motorNums.add(rightFrontNum);
+        motorNums.add(rightBackNum);
+
+
+
+        motorControllerEx = (DcMotorControllerEx)(lf.getController());
+        motorCurrents = getMotorCurrents();
+
+        motorControllerEx.setMotorCurrentAlert(leftFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
+        motorControllerEx.setMotorCurrentAlert(leftBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
+        motorControllerEx.setMotorCurrentAlert(rightFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
+        motorControllerEx.setMotorCurrentAlert(rightBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
+
+
+
+    }
+
 
 
     //Getters and Setters and basic functions
     public void drive(double rfPower, double rbPower, double lbPower, double lfPower) {
 
-        rf.setPower(rfPower);
-        rb.setPower(rbPower);
-        lb.setPower(lbPower);
-        lf.setPower(lfPower);
+        Robot.drive(rfPower,rbPower,lbPower,lfPower);
     }
 
     public GoBildaPinpointDriver getPinPoint(){return odo; }
@@ -252,8 +295,8 @@ public class AutonomousDrive2 {
 
 
     public Pose2D getPos(){odo.update(); return  odo.getPosition(); }
-    public double getX(){odo.update(); return  odo.getPosition().getX(DistanceUnit.INCH); }
-    public double getY(){odo.update(); return  -odo.getPosition().getY(DistanceUnit.INCH); }
+    public double getY(){odo.update(); return  odo.getPosition().getX(DistanceUnit.INCH); }
+    public double getX(){odo.update(); return  odo.getPosition().getY(DistanceUnit.INCH); }
 
     //getHeading outputs 0-360
     public double getHeading(){
@@ -266,18 +309,19 @@ public class AutonomousDrive2 {
     }
     //getHeadingUnNorm outputs -inf-inf
     public double getHeadingUnNorm(){
-        return odo.getHeading();
+        return odo.getHeading(AngleUnit.DEGREES);
     }
 
     //Returns False if robot is not moving substantially
     public boolean isMoving(){
-        return Math.abs(odo.getVelocity().getX(DistanceUnit.INCH)) > 0.005
-                || Math.abs(odo.getVelocity().getY(DistanceUnit.INCH)) > 0.005
-                ||  Math.abs(odo.getVelocity().getHeading(AngleUnit.DEGREES)) > 0.005;
+        return Math.hypot(odo.getVelX(DistanceUnit.INCH), odo.getVelY(DistanceUnit.INCH)) > 0.005;
     }
     public boolean isStuck(double distanceToGo){
         return  !isMoving() && Math.abs(distanceToGo) < 1.75;
     }
+
+
+
 
 
     public double getAngleToGo(double currentHeading,double degrees){
@@ -316,12 +360,11 @@ public class AutonomousDrive2 {
 
         return list;
     }
-    public double getVolts(int num){
-        if(num == 1){
-            return  expansionHub.getInputVoltage(VoltageUnit.VOLTS);
-        }
-        return controlHub.getInputVoltage(VoltageUnit.VOLTS);
+
+    public double getVeloTotal(){
+        return Math.abs(Math.hypot(odo.getVelY(DistanceUnit.INCH), odo.getVelX(DistanceUnit.INCH)));
     }
+
 
     public double[] getPID(int PIDNum) {
         switch (PIDNum) {
@@ -361,7 +404,7 @@ public class AutonomousDrive2 {
     }
 
     public boolean checkTime(double startTime, double currentTime){
-        if((currentTime - startTime) >= timeLimit){
+        if(Math.abs(currentTime - startTime) >= timeLimit){
             return true;
         }else {
             return false;
@@ -374,14 +417,10 @@ public class AutonomousDrive2 {
 
     public void outputInfo(){
         if(outInfo){
-
             opMode.telemetry.addData("X pos: ", getX());
             opMode.telemetry.addData("Y pos: ", getY());
             opMode.telemetry.addData("Heading: ", getHeading());
             opMode.telemetry.addData("Heading Norm: ", getHeadingNorm());
-            opMode.telemetry.addData("Velocity: ", odo.getVelocity().getHeading(AngleUnit.DEGREES));
-            opMode.telemetry.addData("VoltsC: " , getVolts(0));
-            opMode.telemetry.addData("VoltsE: " , getVolts(1));
             opMode.telemetry.update();
         }
     }
@@ -456,13 +495,13 @@ public class AutonomousDrive2 {
         }
     }
 
-    private double movePID(double error, String axis){
+    public double movePID(double error, String axis){
         odo.update();
 
-        int pos = outtake.vslide.getCurrentPosition();
+
         double output = error * kDP;
         if(axis.toLowerCase().charAt(0) == 'y') {
-            output -= odo.getVelocity().getY(DistanceUnit.INCH) * kDD;
+            output -= odo.getVelY(DistanceUnit.INCH) * kDD;
             if (Math.abs(error) <= errorSumRangeD) {
                 output += errorSumDY * kDI;
                 errorSumDY += error;
@@ -472,7 +511,7 @@ public class AutonomousDrive2 {
             }
         }
         if(axis.toLowerCase().charAt(0) == 'x'){
-            output -= odo.getVelocity().getY(DistanceUnit.INCH) * kDD;
+            output -= odo.getVelX(DistanceUnit.INCH) * kDD;
                 if(Math.abs(error) <= errorSumRangeD){
                     output += errorSumDX * kDI;
                     errorSumDX+= error;
@@ -481,30 +520,17 @@ public class AutonomousDrive2 {
                 }
         }
 
-        opMode.telemetry.addData("pos: ", outtake.vslide.getCurrentPosition());
 
-        if(pos > 300){
-            if(output < 0) return Math.max(-0.45, output);
-             return Math.min(0.45, output);
-        }
         return output;
     }
 
-    private  double turnPID(double error){
+    public double turnPID(double error){
         odo.update();
-        double output = error * kTP - odo.getVelocity().getHeading(AngleUnit.DEGREES) * kTD + errorSumT*kTI;
+        double output = error * kTP - odo.getHeadingVelocity(AngleUnit.DEGREES.getUnnormalized()) * kTD + errorSumT*kTI;
         if(Math.abs(error) <= errorSumRangeT){
             errorSumT += error;
         }else{
             errorSumT = 0;
-        }
-
-
-        opMode.telemetry.addData("pos: ", intake.hslide.getCurrentPosition());
-
-        if(intake.hslide.getCurrentPosition() > 500){
-            if(output < 0) return Math.max(-0.5, output);
-            return Math.min(0.5, output);
         }
         return output;
     }
@@ -533,9 +559,8 @@ public class AutonomousDrive2 {
         errorSumT = 0;
 
 
-        double targetXDist =  (targetX- getX());
-        double targetYDist = (targetY - getY());
-        double totalDist = Math.hypot(targetXDist, targetYDist);
+        double targetXDist =  (targetX - getX());//y cord
+        double targetYDist = (targetY + getY());//x cord
 
 
         double startHeading = getHeading();
@@ -547,15 +572,14 @@ public class AutonomousDrive2 {
         targetTime = opMode.time;
 
 
-        while(!timeCheck2(startTime2, opMode.time) && !checkTime(startTime,opMode.time) &&
-                (Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
+        while(checkTime(opMode.time, startTime) && (
+                Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
                         Math.abs(targetYDist) > POS_ERROR_TOLERANCE)
-
                 && opMode.opModeIsActive()) {
 
 
 
-            if(Math.abs(Math.hypot(odo.getVelocity().getX(DistanceUnit.INCH),odo.getVelocity().getY(DistanceUnit.INCH))) > 0.01){
+            if(getVeloTotal() > 0.01){
                 startTime = opMode.time;
             }
 
@@ -563,17 +587,12 @@ public class AutonomousDrive2 {
 
             double[] list1 = new double[]{getX(),getY(), targetX, targetY};
             String[] list2 = new String[]{"X: ","Y: ","Target X: ", "target Y: " };
-            outputInfo(list2,list1);
+            outputInfo();
 
 
-            targetXDist =(targetX - getX());
-            targetYDist = (targetY - getY());
-            totalDist = Math.hypot(targetXDist, targetYDist);
+            targetXDist =(targetX  - getX());
+            targetYDist = (targetY + getY());
 
-            opMode.telemetry.clearAll();
-            opMode.telemetry.addData("Out X: " ,targetXDist );
-            opMode.telemetry.addData("Out Y: " ,targetYDist );
-            opMode.telemetry.update();
 
             double currentHeadingRad = Math.toRadians(getHeadingNorm());
 
@@ -702,7 +721,7 @@ public class AutonomousDrive2 {
         double startTime2 = opMode.time;
 
 
-        while(!timeCheck2(startTime2, opMode.time) &&  !checkTime(startTime,opMode.time) &&
+        while(
                 (Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
                         Math.abs(targetYDist) > POS_ERROR_TOLERANCE || Math.abs(angleToGo) > HEADING_ERROR_TOLERANCE)
 
@@ -710,7 +729,7 @@ public class AutonomousDrive2 {
 
 
 
-            if(Math.abs(odo.getVelocity().getHeading(AngleUnit.DEGREES)) > 5 || Math.abs(Math.hypot(odo.getVelocity().getX(DistanceUnit.INCH),odo.getVelocity().getY(DistanceUnit.INCH))) > 0.01){
+            if(getVeloTotal() > 0.01){
                 startTime = opMode.time;
             }
 

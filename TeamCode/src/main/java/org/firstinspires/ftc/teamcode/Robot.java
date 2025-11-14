@@ -31,7 +31,6 @@ public class Robot {
 
     public static DcMotorControllerEx dcMotorControllerEx;
 
-    public static DistanceSensor distL, distR;
 
 
     public static Servo camServo;
@@ -47,6 +46,18 @@ public class Robot {
 
     public static AutonomousDrive2 ad2;
 
+    public static Outtake outtake;
+
+    public static Intake intake;
+
+    public static double[] targetPosRed = new double[]{60,-60,41};
+    public static double[] targetPosBlue = new double[]{60,60,41};
+
+
+    //Zones the color can't go
+    public static double[][] noGoZoneRed = new double[][] {{5,-40}, {-72,-40}};
+    public static double[][] noGoZoneBlue = new double[][] {{5,40}, {-72,40}};
+
 
     //Blue Side is 0 and Red is 1
     public static int side = 0;
@@ -54,43 +65,37 @@ public class Robot {
 
     public static DcMotor[] motors = new DcMotor[4];
 
+    public static DriverAuto da;
+
+    public static void initAll(LinearOpMode opmode, int sideNum){
+        initAll(opmode, sideNum, false);
+    }
 
 
-    public static void intAll(LinearOpMode opmode, int sideNum){
+    //mode,false is Auto, true is telop
+    public static void initAll(LinearOpMode opmode, int sideNum, boolean mode){
         initDrive(opmode);
         side = sideNum;
 
-        odo = opmode.hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        //Pinpoint offsets from Center in mm
-        //Left is +X, Front is +Y
-        odo.setOffsets(-203,0,DistanceUnit.MM);
+        ad2 = new AutonomousDrive2(opmode, mode);
+        odo = ad2.getPinPoint();
 
-        odo.recalibrateIMU();
-        opmode.sleep(200);
-        odo.resetPosAndIMU();
-        opmode.sleep(200);
-        odo.setHeading(0, AngleUnit.DEGREES);
-
-        ad2 = new AutonomousDrive2(opmode, odo);
-
-        odo.setPosition(new Pose2D(DistanceUnit.INCH, 0,0,AngleUnit.DEGREES, -90));
-
-
+        outtake = new Outtake(opmode, sideNum);
+        intake = new Intake(opmode);
+        da = new DriverAuto(opmode);
 
     }
 
 
-    public static void initDrive(LinearOpMode opmode) {
-        distL = opmode.hardwareMap.get(DistanceSensor.class, "distsensL");
-        distR = opmode.hardwareMap.get(DistanceSensor.class, "distsensR");
 
+
+    public static void initDrive(LinearOpMode opmode) {
         rf = opmode.hardwareMap.get(DcMotorEx.class, "rf");
         rb = opmode.hardwareMap.get(DcMotorEx.class, "rb");
         lb = opmode.hardwareMap.get(DcMotorEx.class, "lb");
         lf = opmode.hardwareMap.get(DcMotorEx.class, "lf");
 
 
-        dcMotorControllerEx = (DcMotorControllerEx) (rf.getController());
 
         motors[0] = rf;
         motors[1] = rb;
@@ -104,10 +109,6 @@ public class Robot {
 
 
         for (int i = 0; i < 4; i++) {
-            dcMotorControllerEx.setMotorCurrentAlert(motors[i].getPortNumber(), 5, CurrentUnit.AMPS);
-        }
-
-        for (int i = 0; i < 4; i++) {
             motors[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             motors[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
@@ -119,7 +120,6 @@ public class Robot {
 
     //Getters and Setters and basic functions
     public static void drive(double rfPower, double rbPower, double lbPower, double lfPower) {
-
         rf.setPower(rfPower);
         rb.setPower(rbPower);
         lb.setPower(lbPower);
@@ -129,17 +129,27 @@ public class Robot {
     public static void driveFC(LinearOpMode opMode){
         odo.update();
 
-        double targetX = odo.getPosY(DistanceUnit.INCH);
-        double targetY = odo.getPosX(DistanceUnit.INCH);
+        double targetX = odo.getPosition().getX(DistanceUnit.INCH);
+        double targetY = odo.getPosition().getY(DistanceUnit.INCH);
 
 
-        double angle = getRelativeTargetAngle(48-targetX, 48-targetY);
-
+        double angle = 0;
+        if(side == 1){
+            angle = getRelativeTargetAngle(targetPosRed[0], targetPosRed[1]);
+        }else{
+            angle = getRelativeTargetAngle(targetPosBlue[0], targetPosBlue[1]);
+        }
 
 
 
 
         double currentHeadingRad = Math.toRadians(odo.getHeading(AngleUnit.DEGREES));
+
+        if(side == 0){
+            currentHeadingRad -= Math.PI/2;
+        }else if(side == 1){
+            currentHeadingRad += Math.PI/2;
+        }
 
 
         double v1 = 0;// lf
@@ -155,12 +165,26 @@ public class Robot {
 
 
         if(opMode.gamepad1.right_bumper){
-            rx = Math.max(-0.3,Math.min(0.3,Robot.turnPID(Robot.getAngleToGo(odo.getHeading(AngleUnit.DEGREES)+180,angle))));
+            rx = -ad2.turnPID(ad2.getAngleToGo(odo.getHeading(AngleUnit.DEGREES)+180,angle));
             opMode.telemetry.addData("angle to go: ", rx);
             opMode.telemetry.update();
         }else{
             rx = opMode.gamepad1.right_stick_x;
         }
+
+       /* if(side == 1 && !opMode.gamepad2.dpad_up){
+            odo.update();
+            if((ad2.getX() < noGoZoneRed[0][0] && ad2.getY() < noGoZoneRed[0][1]) || (ad2.getX() < noGoZoneRed[1][0] && ad2.getY() < noGoZoneRed[1][1])) {
+                y = -Math.abs(y);
+            }
+        }else if(side == 0 && !opMode.gamepad2.dpad_up){
+            odo.update();
+            if((ad2.getX() < noGoZoneBlue[0][0] && ad2.getY() > noGoZoneBlue[0][1]) || (ad2.getX() < noGoZoneBlue[1][0] && ad2.getY() > noGoZoneBlue[1][1])) {
+                y = -Math.abs(y);
+            }
+        }
+♦
+        */
 
 
 
@@ -182,43 +206,31 @@ public class Robot {
 
         if(opMode.gamepad1.right_bumper||Math.abs(opMode.gamepad1.right_stick_x) >= 0.05 || Math.abs(opMode.gamepad1.left_stick_x) >= 0.05 || Math.abs(opMode.gamepad1.left_stick_y) >=0.05){
             Robot.drive(v2, v4, v3, v1);
+        } else if (opMode.gamepad1.dpad_up) {
+            Robot.drive(0.3, 0.3, 0.3, 0.3);
+        }else if (opMode.gamepad1.dpad_down) {
+            Robot.drive(-0.3, -0.3, -0.3, -0.3);
+        } else if (opMode.gamepad1.dpad_right) {
+            Robot.drive(-0.3, 0.3, -0.3, 0.3);
+        }else if (opMode.gamepad1.dpad_left) {
+            Robot.drive(0.3, -0.3, 0.3, -0.3);
         }else {
             Robot.drive(0,0,0,0);
         }
     }
 
     public static double getRelativeTargetAngle(double x, double y){
-        double out = 0;
-        out = Math.atan2(x,y);
-        return  (Math.toDegrees(out) )% 360;
+        return da.getRelativeTargetAngle(x,y);
     }
 
-    public static double turnPID(double error){
-        double output = error * 0.0052 -odo.getHeadingVelocity(AngleUnit.DEGREES.getUnnormalized())*0.0005;
-        return output;
-    }
 
-    public static double getAngleToGo(double currentHeading,double degrees){
-        double angleTogo = degrees - currentHeading;
 
-        if(Math.abs(angleTogo) > 180){
-            if(currentHeading < 180){
-                angleTogo = -((currentHeading) + (360 - degrees));
-            }else{
-                angleTogo = (degrees + (360 - currentHeading));
-            }
-        }
-        return angleTogo;
-    }
 
     public static void lineup(){
-        double diff = distL.getDistance(DistanceUnit.INCH) - distR.getDistance(DistanceUnit.INCH);
-
-        diff *= -10;
-        double turn = turnPID(diff);
-
-        drive(turn,turn, -turn,-turn);
+        da.lineup();
     }
+
+
 
 
 

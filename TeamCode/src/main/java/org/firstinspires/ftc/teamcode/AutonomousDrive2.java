@@ -44,24 +44,34 @@ public class AutonomousDrive2 {
 
     //Error Tolerances
     public final double POS_ERROR_TOLERANCE = 0.25;
-    public final double HEADING_ERROR_TOLERANCE = 0.05;
+    public final double HEADING_ERROR_TOLERANCE = 0.75;
+
+    public final double POS_ERROR_TOLERANCE2 = 5;
 
     private final double MAX_MOTOR_CURRENT = 9.5;
     private final double DEAD_WHEEL_RADIUS_MM = 16;
     //PID controls
 
     //For Drive Movement
-    private double kDP = 0.015;//0.015
-    private double kDI = 0.001;//0.001
-    private double kDD = 0.004;//0.004
+    private double kDP = 0.025;//0.025
+    private double kDI = 0.005;//0.005
+    private double kDD = 0.0025;//0.0025
     private double errorSumDX = 0;
     private double errorSumDY = 0;
-    private double errorSumRangeD = 1;
+    private double errorSumRangeD = 4;
+
+    //splines
+    private double kDP2 = 0.26;//0.26
+    private double kDI2 = 0.001;//0.001
+    private double kDD2 = 0.001;//0.001
+    private double errorSumDX2 = 0;
+    private double errorSumDY2 = 0;
+    private double errorSumRangeD2 = 4;
 
     //For Turn Movement
-    private double kTP = 0.0182;//0.016
-    private double kTI = 0.0005;//0.002
-    private double kTD = 0.0014;//0.003
+    private double kTP = 0.0205;//0.016
+    private double kTI = 0.005;//0.002
+    private double kTD = 0.0015;//0.003
     private double errorSumT = 0;
     private double errorSumRangeT = 5;
 
@@ -97,7 +107,7 @@ public class AutonomousDrive2 {
     public double xOffset = -203;//-203mm
     public double yOffset = 0;//0
 
-    public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
     public GoBildaPinpointDriver.EncoderDirection yDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
     //Dead Wheel Type
@@ -141,89 +151,15 @@ public class AutonomousDrive2 {
 
     public Telemetry telemetryd;
 
+    ArrayList<Path> paths = new ArrayList<>();
 
 
 
 
-
-
-
-    //Constructor with different pose
-    public AutonomousDrive2(LinearOpMode opMode, boolean isLeft){
+    public AutonomousDrive2(LinearOpMode opMode, boolean isTelop) {
         this.opMode = opMode;
 
-        controlHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
-        //expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
-
-        dashboard = FtcDashboard.getInstance();
-        telemetryd = dashboard.getTelemetry();
-
-        lf = opMode.hardwareMap.get(DcMotorEx.class, leftFrontName);
-        lb = opMode.hardwareMap.get(DcMotorEx.class, leftBackName);
-        rf = opMode.hardwareMap.get(DcMotorEx.class, rightFrontName);
-        rb = opMode.hardwareMap.get(DcMotorEx.class, rightBackName);
-
-        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        lf.setDirection(DcMotorSimple.Direction.FORWARD);
-        lb.setDirection(DcMotorSimple.Direction.FORWARD);
-        rf.setDirection(DcMotorSimple.Direction.FORWARD);
-        rb.setDirection(DcMotorSimple.Direction.FORWARD);
-
-
-        leftFrontNum = lf.getPortNumber();
-        leftBackNum = lb.getPortNumber();
-        rightFrontNum = rf.getPortNumber();
-        rightBackNum = rb.getPortNumber();
-
-        motorNums.add(leftFrontNum);
-        motorNums.add(leftBackNum);
-        motorNums.add(rightFrontNum);
-        motorNums.add(rightBackNum);
-
-
-
-        motorControllerEx = (DcMotorControllerEx)(lf.getController());
-        motorCurrents = getMotorCurrents();
-
-        motorControllerEx.setMotorCurrentAlert(leftFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(leftBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(rightFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(rightBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-
-        odo = opMode.hardwareMap.get(GoBildaPinpointDriver.class, odoName);
-
-        //Pinpoint offsets from Center in mm
-        //Left is +X, Front is +Y
-        odo.setOffsets(xOffset, yOffset, DistanceUnit.MM);
-        odo.setEncoderDirections(xDirection, yDirection);
-        odo.setEncoderResolution(encoderPod);
-
-        odo.recalibrateIMU();
-        opMode.sleep(200);
-        odo.resetPosAndIMU();
-        opMode.sleep(200);
-
-        double x =(isLeft) ? 8.5 : 0;
-        double y = (isLeft) ? -72 : 0;
-        double heading = (isLeft) ? 0 : 0;
-        resetOdo((LinearOpMode)opMode, x, y, heading);
-        opMode.sleep(100);
-    }
-
-    public AutonomousDrive2(LinearOpMode opMode, GoBildaPinpointDriver odo){
-        this.opMode = opMode;
-        this.odo = odo;
-
-        controlHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
+        controlHub = (LynxModule) (opMode.hardwareMap.get(LynxModule.class, "Control Hub"));
         //expansionHub = (LynxModule)(opMode.hardwareMap.get(LynxModule.class, "Expansion Hub 2"));
 
         dashboard = FtcDashboard.getInstance();
@@ -235,30 +171,29 @@ public class AutonomousDrive2 {
         rf = Robot.rf;
 
 
+        odo = opMode.hardwareMap.get(GoBildaPinpointDriver.class, odoName);
+        //Pinpoint offsets from Center in mm
+        //Left is +X, Front is +Y
 
-        leftFrontNum = lf.getPortNumber();
-        leftBackNum = lb.getPortNumber();
-        rightFrontNum = rf.getPortNumber();
-        rightBackNum = rb.getPortNumber();
+        if (!isTelop) {
+            odo.setOffsets(xOffset, yOffset, DistanceUnit.MM);
+            odo.setEncoderDirections(xDirection, yDirection);
+            odo.setEncoderResolution(encoderPod);
 
-        motorNums.add(leftFrontNum);
-        motorNums.add(leftBackNum);
-        motorNums.add(rightFrontNum);
-        motorNums.add(rightBackNum);
+            odo.recalibrateIMU();
+            opMode.sleep(200);
+            odo.resetPosAndIMU();
+            opMode.sleep(200);
+            odo.setHeading(0, AngleUnit.DEGREES);
+        }
 
 
 
-        motorControllerEx = (DcMotorControllerEx)(lf.getController());
-        motorCurrents = getMotorCurrents();
-
-        motorControllerEx.setMotorCurrentAlert(leftFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(leftBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(rightFrontNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
-        motorControllerEx.setMotorCurrentAlert(rightBackNum, MAX_MOTOR_CURRENT, CurrentUnit.AMPS);
 
 
 
     }
+
 
 
 
@@ -291,12 +226,13 @@ public class AutonomousDrive2 {
         odo.resetPosAndIMU();
         opMode.sleep(400);
         odo.setPosition(new Pose2D(DistanceUnit.INCH,x,y,AngleUnit.DEGREES, heading));
+        opMode.sleep(400);
     }
 
 
     public Pose2D getPos(){odo.update(); return  odo.getPosition(); }
-    public double getY(){odo.update(); return  odo.getPosition().getX(DistanceUnit.INCH); }
-    public double getX(){odo.update(); return  odo.getPosition().getY(DistanceUnit.INCH); }
+    public double getY(){odo.update(); return  odo.getPosition().getY(DistanceUnit.INCH); }
+    public double getX(){odo.update(); return odo.getPosition().getX(DistanceUnit.INCH); }
 
     //getHeading outputs 0-360
     public double getHeading(){
@@ -422,6 +358,7 @@ public class AutonomousDrive2 {
             opMode.telemetry.addData("Heading: ", getHeading());
             opMode.telemetry.addData("Heading Norm: ", getHeadingNorm());
             opMode.telemetry.update();
+
         }
     }
 
@@ -431,7 +368,7 @@ public class AutonomousDrive2 {
         }
         telemetryd.update();
     }
-    public void outputInfo(double error, double target){
+    public void outputInfo(double xdist, double ydist){
 //        opMode.telemetry.addData("distanceToGo", distanceToGo);
 //        opMode.telemetry.addData("distanceTotal", distanceTotal);
 //        opMode.telemetry.addData("power", power);
@@ -442,9 +379,10 @@ public class AutonomousDrive2 {
 //        opMode.telemetry.update();
 
 
-        telemetryd.addData("Error: ", error);
-        telemetryd.addData("Target: ", target);
+        telemetryd.addData("X distance: ", xdist);
+        telemetryd.addData("Y distance: ", ydist);
         telemetryd.update();
+
 
     }
 
@@ -524,6 +462,36 @@ public class AutonomousDrive2 {
         return output;
     }
 
+    public double movePIDSpline(double error, String axis){
+        odo.update();
+
+
+        double output = error * kDP2;
+        if(axis.toLowerCase().charAt(0) == 'y') {
+            output -= odo.getVelY(DistanceUnit.INCH) * kDD2;
+            if (Math.abs(error) <= errorSumRangeD) {
+                output += errorSumDY * kDI2;
+                errorSumDY2 += error;
+
+            }else{
+                errorSumDY2 = 0;
+            }
+        }
+        if(axis.toLowerCase().charAt(0) == 'x'){
+            output -= odo.getVelX(DistanceUnit.INCH) * kDD2;
+            if(Math.abs(error) <= errorSumRangeD){
+                output += errorSumDX * kDI2;
+                errorSumDX2+= error;
+            }else{
+                errorSumDX2 =0;
+            }
+        }
+
+
+        return output;
+
+    }
+
     public double turnPID(double error){
         odo.update();
         double output = error * kTP - odo.getHeadingVelocity(AngleUnit.DEGREES.getUnnormalized()) * kTD + errorSumT*kTI;
@@ -540,11 +508,11 @@ public class AutonomousDrive2 {
 
     public void forward(double distanceTotal) {
         double startTime = opMode.time;
-        int startpos = odo.getEncoderX();
+        double startpos = odo.getPosition().getX(DistanceUnit.INCH);
         double distanceToGo = (distanceTotal);
-        while (!checkTime(startTime, opMode.time) && Math.abs(distanceToGo) > (POS_ERROR_TOLERANCE + 0.13) && opMode.opModeIsActive()) {
-            distanceToGo =ticksToInches(startpos - odo.getEncoderX()) - distanceTotal;
-            double power = powerCurvingOrg(-distanceToGo);
+        while (Math.abs(distanceToGo) > (POS_ERROR_TOLERANCE + 0.13) && opMode.opModeIsActive()) {
+            distanceToGo = distanceTotal - (odo.getPosition().getX(DistanceUnit.INCH) - startpos);
+            double power = movePID(distanceToGo, "y");
             drive(power, power, power, power);
 
         }
@@ -559,8 +527,9 @@ public class AutonomousDrive2 {
         errorSumT = 0;
 
 
-        double targetXDist =  (targetX - getX());//y cord
-        double targetYDist = (targetY + getY());//x cord
+        double targetXDist =  (targetX- getX());
+        double targetYDist = (getY() - targetY);
+        double totalDist = Math.hypot(targetXDist, targetYDist);
 
 
         double startHeading = getHeading();
@@ -572,27 +541,31 @@ public class AutonomousDrive2 {
         targetTime = opMode.time;
 
 
-        while(checkTime(opMode.time, startTime) && (
-                Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
+        while(!checkTime(startTime,opMode.time) &&
+                (Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
                         Math.abs(targetYDist) > POS_ERROR_TOLERANCE)
+
                 && opMode.opModeIsActive()) {
 
 
 
-            if(getVeloTotal() > 0.01){
-                startTime = opMode.time;
-            }
+
 
             odo.update();
 
-            double[] list1 = new double[]{getX(),getY(), targetX, targetY};
-            String[] list2 = new String[]{"X: ","Y: ","Target X: ", "target Y: " };
-            outputInfo();
 
 
-            targetXDist =(targetX  - getX());
-            targetYDist = (targetY + getY());
 
+            targetXDist =(targetX - getX());
+            targetYDist = -(targetY - getY());
+            totalDist = Math.hypot(targetXDist, targetYDist);
+
+            outputInfo(targetXDist,targetYDist);
+
+            opMode.telemetry.clearAll();
+            opMode.telemetry.addData("Out X: " ,targetXDist );
+            opMode.telemetry.addData("Out Y: " ,targetYDist );
+            opMode.telemetry.update();
 
             double currentHeadingRad = Math.toRadians(getHeadingNorm());
 
@@ -681,7 +654,7 @@ public class AutonomousDrive2 {
             double rotY = x * Math.sin(currentHeadingRad) + y * Math.cos(currentHeadingRad);
 
 
-            rotX = rotX * 1.1;  // Counteract imperfect strafing
+            rotX = rotX * 1.05;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -700,51 +673,149 @@ public class AutonomousDrive2 {
     }
 
     public void goToPointLinear(double targetX, double targetY, double targetHeading){
+            odo.update();
+
+            errorSumDX = 0;
+            errorSumDY = 0;
+            errorSumT = 0;
+
+
+            double targetXDist =  (targetX- getX());
+            double targetYDist = (getY() - targetY);
+            double totalDist = Math.hypot(targetXDist, targetYDist);
+
+
+            double startHeading = getHeading();
+            double turn = -turnPID(startHeading);
+
+            double startTime = opMode.time;
+            double startTime2 = opMode.time;
+
+            double startDist = totalDist;
+            targetTime = opMode.time;
+
+
+            while(!checkTime(startTime,opMode.time) &&
+                    (Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
+                            Math.abs(targetYDist) > POS_ERROR_TOLERANCE)
+
+                    && opMode.opModeIsActive()) {
+
+
+
+                odo.update();
+
+
+
+
+                targetXDist =(targetX - getX());
+                targetYDist = -(targetY - getY());
+                totalDist = Math.hypot(targetXDist, targetYDist);
+
+
+                opMode.telemetry.addData("Out X: " ,targetXDist );
+                opMode.telemetry.addData("Out Y: " ,targetYDist );
+                opMode.telemetry.update();
+
+                double currentTargetHead = turnSlope(targetHeading, startHeading, totalDist, startDist);
+
+                double angleToGo = getAngleToGo(getHeading(), currentTargetHead);
+
+                double currentHeadingRad = Math.toRadians(getHeadingNorm());
+
+
+                double v1 = 0;// lf
+                double v2 = 0; // rf
+                double v3 = 0; // lb
+                double v4 = 0; // rb
+
+
+                double y = movePID(targetXDist,"y"); // Remember, Y stick value is reversed
+                double x = movePID(targetYDist,"x");
+                double rx = -turnPID(angleToGo);
+
+
+                // Rotate the movement direction counter to the bot's rotation
+                double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
+                double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
+
+                rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+                // Denominator is the largest motor power (absolute value) or 1
+                // This ensures all the powers maintain the same ratio,
+                // but only if at least one is out of the range [-1, 1]
+                double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+                v1 = (rotY + rotX + rx) / denominator;
+                v3 = (rotY - rotX + rx) / denominator;
+                v2 = (rotY - rotX - rx) / denominator;
+                v4 = (rotY + rotX - rx) / denominator;
+
+
+
+                drive(v2,v4,v3,v1);
+            }
+            drive(0,0,0,0);
+    }
+
+
+    public void goToPointLinearNoStop(double targetX, double targetY, double targetHeading){
         odo.update();
 
-        double targetXDist = targetX - getX();
-        double targetYDist = targetY - getY();
+        errorSumDX2 = 0;
+        errorSumDY2 = 0;
+        errorSumT = 0;
+
+
+        double targetXDist =  (targetX- getX());
+        double targetYDist = (getY() - targetY);
         double totalDist = Math.hypot(targetXDist, targetYDist);
 
 
-
-        double startDist = totalDist;
-
         double startHeading = getHeading();
-        double angleToGo = getAngleToGo(getHeading(), startHeading);
-
-        double headingdist = targetHeading - startHeading;
-        double currentTargetHead = turnSlope(targetHeading, startHeading, totalDist, startDist);
-
+        double turn = -turnPID(startHeading);
 
         double startTime = opMode.time;
         double startTime2 = opMode.time;
 
+        double startDist = totalDist;
+        targetTime = opMode.time;
 
-        while(
-                (Math.abs(targetXDist) > POS_ERROR_TOLERANCE ||
-                        Math.abs(targetYDist) > POS_ERROR_TOLERANCE || Math.abs(angleToGo) > HEADING_ERROR_TOLERANCE)
+
+        while(!checkTime(startTime,opMode.time) &&
+                (Math.abs(targetXDist) > POS_ERROR_TOLERANCE2 ||
+                        Math.abs(targetYDist) > POS_ERROR_TOLERANCE2)
 
                 && opMode.opModeIsActive()) {
 
 
 
-            if(getVeloTotal() > 0.01){
-                startTime = opMode.time;
-            }
-
             odo.update();
-            outputInfo();
 
-            targetXDist = (targetX - getX());
-            targetYDist = targetY - getY();
+
+
+
+            targetXDist =(targetX - getX());
+            targetYDist = -(targetY - getY());
             totalDist = Math.hypot(targetXDist, targetYDist);
+
+
+            opMode.telemetry.addData("Out X: " ,targetXDist );
+            opMode.telemetry.addData("Out Y: " ,targetYDist );
+            opMode.telemetry.update();
+            telemetryd.addData("Out X: " ,targetXDist );
+            telemetryd.addData("Out Y: " ,targetYDist );
+            telemetryd.addData("PX: ", targetXDist * kDP2);
+            telemetryd.addData("DP: ", targetXDist * kDD2);
+            telemetryd.addData("PY: ", targetYDist * kDP2);
+            telemetryd.addData("DY: ", targetYDist * kDD2);
+            telemetryd.update();
+
+            double currentTargetHead = turnSlope(targetHeading, startHeading, totalDist, startDist);
+
+            double angleToGo = getAngleToGo(getHeading(), currentTargetHead);
 
             double currentHeadingRad = Math.toRadians(getHeadingNorm());
 
-            currentTargetHead = turnSlope(targetHeading, startHeading, totalDist, startDist);
-
-            angleToGo = getAngleToGo(getHeading(), currentTargetHead);
 
             double v1 = 0;// lf
             double v2 = 0; // rf
@@ -752,24 +823,16 @@ public class AutonomousDrive2 {
             double v4 = 0; // rb
 
 
-            double y = movePID(targetXDist,"y"); // Remember, Y stick value is reversed
-            double x = movePID(targetYDist,"x");
+            double y = movePIDSpline(targetXDist,"y"); // Remember, Y stick value is reversed
+            double x = movePIDSpline(targetYDist,"x");
             double rx = -turnPID(angleToGo);
 
 
-            /*
-            if(rx < 0){
-                rx = Math.max(-1, rx);
-            }else{
-                rx = Math.min(1, rx);
-            }
-
-             */
             // Rotate the movement direction counter to the bot's rotation
             double rotX = x * Math.cos(-currentHeadingRad) - y * Math.sin(-currentHeadingRad);
             double rotY = x * Math.sin(-currentHeadingRad) + y * Math.cos(-currentHeadingRad);
 
-            rotX = rotX * 1.05;  // Counteract imperfect strafing
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -784,8 +847,9 @@ public class AutonomousDrive2 {
 
             drive(v2,v4,v3,v1);
         }
-        drive(0,0,0,0);
     }
+
+
 
     public void goToPointLinearOrg(double targetX, double targetY, double targetHeading){
         odo.update();
@@ -860,7 +924,7 @@ public class AutonomousDrive2 {
         errorSumT = 0;
         while(!checkTime(startTime, opMode.time) && Math.abs(angleToGo) > HEADING_ERROR_TOLERANCE && opMode.opModeIsActive()){
             odo.update();
-
+            outputInfo();
             angleToGo = getAngleToGo(getHeading(), heading);
             outputInfo(getHeading(), heading);
             power = turnPID(angleToGo);
@@ -909,4 +973,46 @@ public class AutonomousDrive2 {
         }
 
     }
+
+    public void createPath(double[] startPose, double startTangent){
+        Path path = new Path(this, opMode, startPose,startTangent);
+        paths.add(path);
+    }
+
+    public Path getPath(int index){
+        if(index < 0 || index >= paths.size()){
+            return null;
+        }
+        return paths.get(index);
+    }
+
+    public void runPath(int pathNum){
+        Path path = getPath(pathNum);
+        double t = 0;
+        while(!path.isComplete(t, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
+            double[] point = path.getPoint(t);
+            goToPointLinearNoStop(point[0],point[1], point[2]);
+            t += 0.05;
+        }
+        double[] point =  path.path.get(path.getLength()-2);
+        goToPointLinear(point[0], point[1], point[2]);
+        opMode.sleep(50);
+
+    }
+
+    public void runPath(int pathNum, double pace){
+        Path path = getPath(pathNum);
+        double t = 0;
+        pace = Math.abs(pace);
+        while(!path.isComplete(t, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
+            double[] point = path.getPoint(t);
+            goToPointLinearNoStop(point[0],point[1], 180);
+            t += pace;
+        }
+        double[] point =  path.path.get(path.getLength()-2);
+        goToPointLinear(point[0], point[1], point[2]);
+        opMode.sleep(50);
+
+    }
+
 }

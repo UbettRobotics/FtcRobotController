@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autos;
 
 import static org.firstinspires.ftc.teamcode.Robot.ad2;
 import static org.firstinspires.ftc.teamcode.Robot.initAll;

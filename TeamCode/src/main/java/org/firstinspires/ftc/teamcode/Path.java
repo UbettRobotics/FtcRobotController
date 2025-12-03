@@ -31,7 +31,7 @@ public class Path{
 
         this.path.add(startPose);
 
-        double[] controlPoint1 = makeControlPoint(startPose, startTangent, 1);
+        double[] controlPoint1 = makeControlPoint(startPose, startTangent + 180, 1);
 
         this.path.add(controlPoint1);
         this.opMode = opMode;
@@ -64,21 +64,22 @@ public class Path{
         double[] controlPoint2 = makeControlPoint(point2, endTangent, weight);
         double[] controlPoint3 = makeControlPoint(point2, endTangent + 180, weight);
 
-        path.add(controlPoint2);
-        path.add(point2);
         path.add(controlPoint3);
+        path.add(point2);
+        path.add(controlPoint2);
 
     }
 
 
 
-    public boolean isComplete(double tick, double[] point, AutonomousDrive2 ad2){
+    public boolean isComplete(double tick,Path path, double[] point, AutonomousDrive2 ad2){
 
         double dist1 = Math.abs(point[0] -ad2.getX());
         double dist2 = Math.abs(point[1] -ad2.getY());
 
 
-        return (tick >= 1 && dist1 <= ad2.POS_ERROR_TOLERANCE2 && dist2 <= ad2.POS_ERROR_TOLERANCE2);
+
+        return (tick >= (path.getLength()-1)/4 && dist1 <= ad2.POS_ERROR_TOLERANCE2 && dist2 <= ad2.POS_ERROR_TOLERANCE2);
 
     }
     private double[] pathFunc(double t, int index){
@@ -101,8 +102,6 @@ public class Path{
         double[] p5 =  blend(p2, p3, t);
         double[] p6 =  blend(p4, p5, t);
 
-        double heading = (1-t)*angle1 + t * angle2;
-        p6[2] = heading;
         double[] point = p6;
         return point;
 
@@ -118,8 +117,8 @@ public class Path{
     }
 
     private static double[] makeControlPoint(double[] point1,double angle1, double weight){
-        double x = point1[0] + weight * Math.sin(Math.toRadians(angle1-90));
-        double y = point1[1] +  weight * Math.cos(Math.toRadians(angle1 - 90));;
+        double x = point1[0] + weight * Math.sin(Math.toRadians(angle1));
+        double y = point1[1] -  weight * Math.cos(Math.toRadians(angle1));;
 
         double[] point = new double[]{x,y,point1[2]};
         return  point;

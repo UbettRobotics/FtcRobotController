@@ -1,15 +1,19 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.telops;
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "Blue Telop")
-public class Telop1Blue extends LinearOpMode {
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
+@TeleOp(name = "Red Telop")
+public class Telop1Red extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        initAll(this, 0, true);
+        initAll(this, 1, true);
+        Pose2D pose2D = ad2.getPos();
+
 
         waitForStart();
 
@@ -39,7 +43,6 @@ public class Telop1Blue extends LinearOpMode {
 
             double distance = Math.hypot((ad2.getX()-targetPosRed[0]), (ad2.getY()-targetPosRed[1]));
             telemetry.addData("Actual Rpm: ", outtake.getSpeedofLauncher());
-            telemetry.addData("Launch Speed: ", outtake.launchSpeed);
             telemetry.addData("X Pos: ", ad2.getX());
             telemetry.addData("Y Pos: ", ad2.getY());
             telemetry.addData("Dist: ", distance);

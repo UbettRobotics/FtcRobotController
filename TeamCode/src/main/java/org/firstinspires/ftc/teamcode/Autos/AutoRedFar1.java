@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autos;
 
 import static org.firstinspires.ftc.teamcode.Robot.ad2;
 import static org.firstinspires.ftc.teamcode.Robot.initAll;
@@ -10,14 +10,15 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name = "Auto Red Close 1", preselectTeleOp = "Red Telop")
-public class AutoRedClose1 extends LinearOpMode {
+@Autonomous(name = "Auto Red Far 1", preselectTeleOp = "Red Telop")
+public class AutoRedFar1 extends LinearOpMode {
+
     @Override
     public void runOpMode() throws InterruptedException {
         initAll(this, 1, false);
         ad2.setOutputInfo(true);
-        ad2.setTimeLimit(3.5);
-        ad2.resetOdo(this, 51.4, -51.5, 135);
+        ad2.setTimeLimit(4);
+        ad2.resetOdo(this, -63.5, -24, -180);
 
         telemetry.addLine("Ready");
         telemetry.update();
@@ -25,34 +26,25 @@ public class AutoRedClose1 extends LinearOpMode {
         waitForStart();
 
         //Go launch Ball 1
-        ad2.goToPointLinear(36, -24, 315);
+        ad2.goToPointLinear(24, -24, 315);
+        ad2.goToHeading(305);
         autoLaunch(this,outtake.launchMotor, outtake.loaderServo, outtake.loadingPos, outtake.launchPos);
         outtake.resetLoader();
         outtake.stopLaunch();
 
         //Go get Ball 2
         intake.intakeArt(1);
-        ad2.goToPointLinear(12, -18, 90);
-        ad2.goToPointConstantHeading(12,-40);
+        ad2.goToPointLinear(-36, -18, 90);
+        ad2.goToPointConstantHeading(-36,-40);
         intake.intakeArt(0);
 
         //Go launch Ball 2
-        ad2.goToPointLinear(36, -24, 315);
+        ad2.goToPointLinear(24, -24, 315);
         autoLaunch(this,outtake.launchMotor, outtake.loaderServo, outtake.loadingPos, outtake.launchPos);
         outtake.resetLoader();
         outtake.stopLaunch();
 
-        //Go get Ball 3
-        intake.intakeArt(1);
-        ad2.goToPointLinear(12, -18, 90);
-        ad2.goToPointConstantHeading(12,-50);
-        intake.intakeArt(0);
 
-        //Go launch Ball 3
-        ad2.goToPointLinear(36, -24, 315);
-        autoLaunch(this,outtake.launchMotor, outtake.loaderServo, outtake.loadingPos, outtake.launchPos);
-        outtake.resetLoader();
-        outtake.stopLaunch();
     }
 
     public void autoLaunch(LinearOpMode opMode, DcMotorEx launchMotor, Servo loadServo, double loadPos, double launchPose) {
@@ -64,8 +56,9 @@ public class AutoRedClose1 extends LinearOpMode {
             telemetry.addLine("Spinning Up");
             telemetry.update();
         }
+        sleep(100);
         loadServo.setPosition(launchPose);
-        sleep(800);
+        sleep(1000);
         launchMotor.setVelocity(0);
     }
 }

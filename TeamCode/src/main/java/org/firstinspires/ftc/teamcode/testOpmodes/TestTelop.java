@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.testOpmodes;
 
 import static org.firstinspires.ftc.teamcode.Robot.*;
 
@@ -42,7 +42,6 @@ public class TestTelop extends LinearOpMode {
 
             double distance = Math.hypot((ad2.getX()-targetPosRed[0]), (ad2.getY()-targetPosRed[1]));
             telemetry.addData("Actual Rpm: ", outtake.getSpeedofLauncher());
-            telemetry.addData("Launch Speed: ", outtake.launchSpeed);
             telemetry.addData("X Pos: ", ad2.getX());
             telemetry.addData("Y Pos: ", ad2.getY());
             telemetry.addData("Dist: ", distance);

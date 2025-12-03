@@ -46,7 +46,7 @@ public class AutonomousDrive2 {
     public final double POS_ERROR_TOLERANCE = 0.25;
     public final double HEADING_ERROR_TOLERANCE = 0.75;
 
-    public final double POS_ERROR_TOLERANCE2 = 5;
+    public final double POS_ERROR_TOLERANCE2 = 2.5;
 
     private final double MAX_MOTOR_CURRENT = 9.5;
     private final double DEAD_WHEEL_RADIUS_MM = 16;
@@ -56,24 +56,24 @@ public class AutonomousDrive2 {
     private double kDP = 0.025;//0.025
     private double kDI = 0.005;//0.005
     private double kDD = 0.0025;//0.0025
-    private double errorSumDX = 0;
-    private double errorSumDY = 0;
-    private double errorSumRangeD = 4;
+    public double errorSumDX = 0;
+    public double errorSumDY = 0;
+    public double errorSumRangeD = 4;
 
     //splines
-    private double kDP2 = 0.26;//0.26
-    private double kDI2 = 0.001;//0.001
-    private double kDD2 = 0.001;//0.001
-    private double errorSumDX2 = 0;
-    private double errorSumDY2 = 0;
-    private double errorSumRangeD2 = 4;
+    private double kDP2 = 0.14;//0.14
+    private double kDI2 = 0.005;//0.005
+    private double kDD2 = 0.0015;//0.0025
+    public double errorSumDX2 = 0;
+    public double errorSumDY2 = 0;
+    public double errorSumRangeD2 = 4;
 
     //For Turn Movement
-    private double kTP = 0.0205;//0.016
-    private double kTI = 0.005;//0.002
-    private double kTD = 0.0015;//0.003
-    private double errorSumT = 0;
-    private double errorSumRangeT = 5;
+    public double kTP = 0.016;//0.016
+    public double kTI = 0.005;//0.002
+    public double kTD = 0.0015;//0.003
+    public double errorSumT = 0;
+    public double errorSumRangeT = 5;
 
 
 
@@ -105,7 +105,7 @@ public class AutonomousDrive2 {
     //Pinpoint offsets from Center in mm and encoder Direction
     //Left is +X, Front is +Y
     public double xOffset = -203;//-203mm
-    public double yOffset = 0;//0
+    public double yOffset = -6.35;//-24.5mm
 
     public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
     public GoBildaPinpointDriver.EncoderDirection yDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
@@ -467,9 +467,13 @@ public class AutonomousDrive2 {
 
 
         double output = error * kDP2;
+
+        if(error > 5){
+            return movePID(error, axis);
+        }
         if(axis.toLowerCase().charAt(0) == 'y') {
             output -= odo.getVelY(DistanceUnit.INCH) * kDD2;
-            if (Math.abs(error) <= errorSumRangeD) {
+            if (Math.abs(error) <= errorSumRangeD2) {
                 output += errorSumDY * kDI2;
                 errorSumDY2 += error;
 
@@ -479,7 +483,7 @@ public class AutonomousDrive2 {
         }
         if(axis.toLowerCase().charAt(0) == 'x'){
             output -= odo.getVelX(DistanceUnit.INCH) * kDD2;
-            if(Math.abs(error) <= errorSumRangeD){
+            if(Math.abs(error) <= errorSumRangeD2){
                 output += errorSumDX * kDI2;
                 errorSumDX2+= error;
             }else{
@@ -989,10 +993,10 @@ public class AutonomousDrive2 {
     public void runPath(int pathNum){
         Path path = getPath(pathNum);
         double t = 0;
-        while(!path.isComplete(t, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
+        while(!path.isComplete(t,path, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
             double[] point = path.getPoint(t);
             goToPointLinearNoStop(point[0],point[1], point[2]);
-            t += 0.05;
+            t += 0.025;
         }
         double[] point =  path.path.get(path.getLength()-2);
         goToPointLinear(point[0], point[1], point[2]);
@@ -1004,13 +1008,32 @@ public class AutonomousDrive2 {
         Path path = getPath(pathNum);
         double t = 0;
         pace = Math.abs(pace);
-        while(!path.isComplete(t, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
+        while(!path.isComplete(t,path, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
             double[] point = path.getPoint(t);
-            goToPointLinearNoStop(point[0],point[1], 180);
+            goToPointLinearNoStop(point[0],point[1], point[2]);
             t += pace;
+
         }
         double[] point =  path.path.get(path.getLength()-2);
         goToPointLinear(point[0], point[1], point[2]);
+        opMode.sleep(50);
+
+    }
+
+    public void runPathConstantHeading(int pathNum, double pace){
+        Path path = getPath(pathNum);
+        odo.update();
+        double startHeading = getHeading();
+        double t = 0;
+        pace = Math.abs(pace);
+        while(!path.isComplete(t,path, path.path.get(path.getLength()-2), this) && opMode.opModeIsActive()){
+            double[] point = path.getPoint(t);
+            goToPointLinearNoStop(point[0],point[1], startHeading);
+            t += pace;
+            opMode.telemetry.addData("t: ", t);
+        }
+        double[] point =  path.path.get(path.getLength()-2);
+        goToPointLinear(point[0], point[1], startHeading);
         opMode.sleep(50);
 
     }

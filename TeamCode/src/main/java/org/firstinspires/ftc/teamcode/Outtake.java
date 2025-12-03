@@ -11,13 +11,13 @@ import static org.firstinspires.ftc.teamcode.Robot.*;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Outtake {
-    DcMotorEx launchMotor;
+    public DcMotorEx launchMotor;
 
 
-    Servo loaderServo;
+    public Servo loaderServo;
 
-    double launchPos = 0.25;
-    double loadingPos = 0;
+    public double launchPos = 0.25;
+    public double loadingPos = 0;
 
     LinearOpMode opMode;
 
